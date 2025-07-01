@@ -1,0 +1,7 @@
+/* 全局样式文件，可根据需要自定义 */
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    background: #f5f6fa;
+    color: #222;
+}
