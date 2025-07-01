@@ -17,14 +17,33 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '../stores/user'
+import { LOGIN_API } from '../config/index'
+import http from '../config/http'
 
 const username = ref('')
 const password = ref('')
+const router = useRouter()
+const userStore = useUserStore()
 
-function handleLogin() {
-    // 简单演示，实际登录逻辑请对接后端
-    if (username.value && password.value) {
-        alert(`用户名：${username.value}\n密码：${password.value}`)
+async function handleLogin() {
+    try {
+        const res = await http.post(LOGIN_API, {
+            username: username.value,
+            password: password.value
+        })
+        // 解析后端返回的data字段
+        const userData = res.data
+        userStore.setToken(userData.token)
+        userStore.setUsername(userData.username)
+        userStore.setUserId(userData.userId)
+        userStore.setRealName(userData.realName)
+        userStore.setRole(userData.role)
+        router.push('/')
+        console.log(res)
+    } catch (err) {
+        // 错误提示已由http拦截器处理
     }
 }
 </script>

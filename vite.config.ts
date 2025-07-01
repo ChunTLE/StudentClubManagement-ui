@@ -15,4 +15,14 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        // 如果后端不需要 /api 前缀，可以开启 rewrite
+        // rewrite: path => path.replace(/^\/api/, '')
+      },
+    },
+  },
 })
