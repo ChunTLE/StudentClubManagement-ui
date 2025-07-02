@@ -40,7 +40,7 @@ async function handleLogin() {
         userStore.setUserId(userData.userId)
         userStore.setRealName(userData.realName)
         userStore.setRole(userData.role)
-        router.push('/clubs')
+        router.push('/activities')
         console.log(res)
     } catch (err) {
         // 错误提示已由http拦截器处理

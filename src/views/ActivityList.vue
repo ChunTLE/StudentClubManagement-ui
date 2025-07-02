@@ -245,8 +245,10 @@ function openCreateDialog() {
 async function handleCreateActivity() {
   createLoading.value = true
   try {
+    console.log("用户id"+userStore.userId)
     await http.post('/activities', {
-      ...createForm.value
+      ...createForm.value,
+      createdBy: userStore.userId
     })
     showCreateDialog.value = false
     fetchActivities()
@@ -287,7 +289,8 @@ async function handleEditActivity() {
   editLoading.value = true
   try {
     await http.put(`/activities/${editForm.value.id}`, {
-      ...editForm.value
+      ...editForm.value,
+      createdBy: userStore.userId
     })
     showEditDialog.value = false
     fetchActivities()
