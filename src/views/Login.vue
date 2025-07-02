@@ -41,6 +41,7 @@ async function handleLogin() {
         userStore.setRealName(userData.realName)
         userStore.setRole(userData.role)
         router.push('/activities')
+
         console.log(res)
     } catch (err) {
         // 错误提示已由http拦截器处理
