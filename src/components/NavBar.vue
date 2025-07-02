@@ -4,6 +4,7 @@
         <el-menu-item index="/clubs">社团管理</el-menu-item>
         <el-menu-item index="/finance">财政管理</el-menu-item>
         <el-menu-item index="/activities">活动管理</el-menu-item>
+        <el-menu-item index="/membership-review">加入社团审核</el-menu-item>
     </el-menu>
 </template>
 
@@ -17,6 +18,7 @@ const activeMenu = computed(() => {
     if (route.path.startsWith('/clubs')) return '/clubs'
     if (route.path.startsWith('/finance')) return '/finance'
     if (route.path.startsWith('/activities')) return '/activities'
+    if (route.path.startsWith('/membership-review')) return '/membership-review'
     return '/'
 })
 

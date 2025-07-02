@@ -29,6 +29,11 @@ const router = createRouter({
       name: 'ActivityList',
       component: () => import('../views/ActivityList.vue')
     },
+    {
+      path: '/membership-review',
+      name: 'MembershipReview',
+      component: () => import('../views/MembershipReview.vue')
+    },
   ],
 })
 
