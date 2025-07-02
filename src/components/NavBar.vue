@@ -3,6 +3,7 @@
         <el-menu-item index="/">首页</el-menu-item>
         <el-menu-item index="/clubs">社团管理</el-menu-item>
         <el-menu-item index="/finance">财政管理</el-menu-item>
+        <el-menu-item index="/activities">活动管理</el-menu-item>
     </el-menu>
 </template>
 
@@ -15,6 +16,7 @@ const route = useRoute()
 const activeMenu = computed(() => {
     if (route.path.startsWith('/clubs')) return '/clubs'
     if (route.path.startsWith('/finance')) return '/finance'
+    if (route.path.startsWith('/activities')) return '/activities'
     return '/'
 })
 

@@ -17,6 +17,12 @@
                             <div class="feature-desc">管理社团财务收支记录</div>
                         </el-card>
                     </el-col>
+                    <el-col :span="12">
+                        <el-card shadow="hover" class="feature-card" @click="goTo('ActivityList')">
+                            <div class="feature-title">活动管理</div>
+                            <div class="feature-desc">查看、创建、编辑和删除活动信息</div>
+                        </el-card>
+                    </el-col>
                 </el-row>
             </div>
         </el-card>
