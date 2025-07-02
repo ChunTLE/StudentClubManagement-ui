@@ -32,11 +32,17 @@ export const useUserStore = defineStore('user', () => {
 
   function setRole(r: string) {
     role.value = r
+    localStorage.setItem('role', r)
   }
+
 
   // 初始化时从localStorage恢复token
   if (localStorage.getItem('token')) {
     token.value = localStorage.getItem('token')
+  }
+
+  if(localStorage.getItem('role')) {
+    role.value = localStorage.getItem('role')
   }
 
   return { token, username, userId, realName, role, setToken, removeToken, setUsername, setUserId, setRealName, setRole }
