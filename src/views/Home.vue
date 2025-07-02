@@ -29,6 +29,12 @@
                             <div class="feature-desc">审核入社申请，管理成员资格</div>
                         </el-card>
                     </el-col>
+                    <el-col :span="6">
+                        <el-card shadow="hover" class="feature-card" @click="goTo('ActivityEnrollment')">
+                            <div class="feature-title">活动报名管理</div>
+                            <div class="feature-desc">管理活动报名信息</div>
+                        </el-card>
+                    </el-col>
                 </el-row>
             </div>
         </el-card>
