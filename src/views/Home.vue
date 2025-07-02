@@ -5,19 +5,19 @@
             <p class="welcome">欢迎使用学生社团管理系统！</p>
             <div class="features">
                 <el-row :gutter="20">
-                    <el-col :span="12">
+                    <el-col :span="6">
                         <el-card shadow="hover" class="feature-card" @click="goTo('ClubList')">
                             <div class="feature-title">社团管理</div>
                             <div class="feature-desc">查看、创建、编辑和删除社团信息</div>
                         </el-card>
                     </el-col>
-                    <el-col :span="12">
+                    <el-col :span="6">
                         <el-card shadow="hover" class="feature-card" @click="goTo('Finance')">
                             <div class="feature-title">财政管理</div>
                             <div class="feature-desc">管理社团财务收支记录</div>
                         </el-card>
                     </el-col>
-                    <el-col :span="12">
+                    <el-col :span="6">
                         <el-card shadow="hover" class="feature-card" @click="goTo('ActivityList')">
                             <div class="feature-title">活动管理</div>
                             <div class="feature-desc">查看、创建、编辑和删除活动信息</div>
@@ -27,6 +27,19 @@
                         <el-card shadow="hover" class="feature-card" @click="goTo('DepartmentList')">
                             <div class="feature-title">部门管理</div>
                             <div class="feature-desc">查看、创建、编辑和删除部门信息</div>
+                        </el-card>  
+                    </el-col>     
+                    <el-col :span="6">
+                        <el-card shadow="hover" class="feature-card" @click="goTo('MembershipReview')">
+                            <div class="feature-title">加入社团审核</div>
+                            <div class="feature-desc">审核入社申请，管理成员资格</div>
+                        </el-card>
+                    </el-col>
+                    <el-col :span="6">
+                        <el-card shadow="hover" class="feature-card" @click="goTo('ActivityEnrollment')">
+                            <div class="feature-title">活动报名管理</div>
+                            <div class="feature-desc">管理活动报名信息</div>
+
                         </el-card>
                     </el-col>
                 </el-row>
