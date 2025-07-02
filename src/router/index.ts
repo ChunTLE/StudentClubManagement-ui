@@ -18,6 +18,11 @@ const router = createRouter({
       name: 'ClubList',
       component: () => import('../views/ClubList.vue')
     },
+    {
+      path: '/finance',
+      name: 'Finance',
+      component: () => import('../views/Finance.vue')
+    },
   ],
 })
 
