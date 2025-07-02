@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
+import NavBar from './components/NavBar.vue'
 </script>
 
 <template>
-  <RouterView />
+  <router-view v-slot="{ Component, route }">
+    <NavBar v-if="route.name !== 'Home' && route.name !== 'Login'" />
+    <component :is="Component" />
+  </router-view>
 </template>
 
 <style scoped>

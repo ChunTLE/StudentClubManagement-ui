@@ -40,7 +40,7 @@ async function handleLogin() {
         userStore.setUserId(userData.userId)
         userStore.setRealName(userData.realName)
         userStore.setRole(userData.role)
-        router.push('/activities')
+        router.push('/')
 
         console.log(res)
     } catch (err) {
