@@ -33,6 +33,10 @@
                     </template>
                 </el-table-column>
             </el-table>
+            <div style="margin-top: 16px; display: flex; justify-content: center;">
+                <el-pagination background layout="total, prev, pager, next, jumper" :total="total" :page-size="pageSize"
+                    :current-page="currentPage" @current-change="handlePageChange" />
+            </div>
         </el-card>
     </div>
 </template>
@@ -46,6 +50,10 @@ const users = ref<any[]>([])
 const clubs = ref<any[]>([])
 const departments = ref<any[]>([])
 const loading = ref(false)
+
+const total = ref(0)
+const pageSize = ref(10)
+const currentPage = ref(1)
 
 const userMap = computed(() => {
     const map: Record<string, string> = {}
@@ -74,7 +82,13 @@ async function fetchAll() {
     loading.value = true
     try {
         const [memRes, userRes, clubRes, deptRes] = await Promise.all([
-            http.get('/memberships'),
+            http.get('/memberships', {
+                params: {
+                    pageNum: currentPage.value,
+                    pageSize: pageSize.value,
+                    status: 'PENDING'
+                }
+            }),
             http.get('/users'),
             http.get('/clubs', {
                 params: {
@@ -85,12 +99,18 @@ async function fetchAll() {
             http.get('/departments')
         ])
         memberships.value = memRes.data.list || []
+        total.value = memRes.data.total || 0
         users.value = userRes.data || []
         clubs.value = clubRes.data.data?.list || clubRes.data.list || []
         departments.value = deptRes.data.records || []
     } finally {
         loading.value = false
     }
+}
+
+function handlePageChange(page: number) {
+    currentPage.value = page
+    fetchAll()
 }
 
 async function handleApprove(row: any) {

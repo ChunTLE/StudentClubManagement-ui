@@ -7,7 +7,8 @@ export const useUserStore = defineStore('user', {
     username: '',
     realName: '',
     role: '',
-    token: ''
+    token: '',
+    avatar: ''
   }),
   actions: {
     setUser(user: any) {
@@ -16,6 +17,7 @@ export const useUserStore = defineStore('user', {
       this.realName = user.realName || ''
       this.role = user.role
       this.token = user.token
+      this.avatar = user.avatar || ''
     },
     clearUser() {
       this.userId = ''
@@ -23,6 +25,7 @@ export const useUserStore = defineStore('user', {
       this.realName = ''
       this.role = ''
       this.token = ''
+      this.avatar = ''
     },
     setToken(token: string) {
       this.token = token

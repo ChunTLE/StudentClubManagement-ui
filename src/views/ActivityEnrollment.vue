@@ -6,14 +6,12 @@
                 <el-button type="primary" @click="showCreateDialog = true">新增报名</el-button>
             </div>
             <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-                <el-input v-model="searchUserId" placeholder="按用户ID筛选" style="width: 140px;" />
-                <el-input v-model="searchActivityId" placeholder="按活动ID筛选" style="width: 140px;" />
                 <el-input v-model="searchUsername" placeholder="按用户名筛选" style="width: 140px;" />
+                <el-input v-model="searchActivityName" placeholder="按活动名称筛选" style="width: 140px;" />
                 <el-button type="primary" @click="handleSearch">查询</el-button>
                 <el-button @click="resetSearch">重置</el-button>
             </div>
-            <el-table :data="filteredEnrollments" style="width: 100%" v-loading="loading" border>
-
+            <el-table :data="enrollments" style="width: 100%" v-loading="loading" border>
                 <el-table-column prop="username" label="用户名" />
                 <el-table-column prop="activityTitle" label="活动名称" />
                 <el-table-column prop="enrolledAt" label="报名时间">
@@ -28,6 +26,10 @@
                     </template>
                 </el-table-column>
             </el-table>
+            <div style="margin-top: 16px; display: flex; justify-content: center;">
+                <el-pagination background layout="total, prev, pager, next, jumper" :total="total" :page-size="pageSize"
+                    :current-page="currentPage" @current-change="handlePageChange" />
+            </div>
         </el-card>
         <el-dialog v-model="showCreateDialog" title="新增报名" width="400px">
             <el-form :model="createForm" label-width="80px">
@@ -73,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import http from '../config/http'
 
 const enrollments = ref<any[]>([])
@@ -81,9 +83,13 @@ const users = ref<any[]>([])
 const activities = ref<any[]>([])
 const loading = ref(false)
 
+const total = ref(0)
+const pageSize = ref(10)
+const currentPage = ref(1)
+
 const searchUserId = ref('')
-const searchActivityId = ref('')
 const searchUsername = ref('')
+const searchActivityName = ref('')
 
 const showCreateDialog = ref(false)
 const createForm = ref({ userId: '', activityId: '' })
@@ -92,20 +98,6 @@ const createLoading = ref(false)
 const showEditDialog = ref(false)
 const editForm = ref({ id: '', userId: '', activityId: '' })
 const editLoading = ref(false)
-
-const filteredEnrollments = computed(() => {
-    let result = enrollments.value
-    if (searchUserId.value) {
-        result = result.filter(e => String(e.userId) === String(searchUserId.value))
-    }
-    if (searchActivityId.value) {
-        result = result.filter(e => String(e.activityId) === String(searchActivityId.value))
-    }
-    if (searchUsername.value) {
-        result = result.filter(e => (e.username || '').includes(searchUsername.value))
-    }
-    return result
-})
 
 function formatDate(dateStr: string) {
     if (!dateStr) return ''
@@ -116,15 +108,21 @@ async function fetchAll() {
     loading.value = true
     try {
         const [enrollRes, userRes, activityRes] = await Promise.all([
-            http.get('/enrollments'),
+            http.get('/enrollments', {
+                params: {
+                    pageNum: currentPage.value,
+                    pageSize: pageSize.value,
+                    username: searchUsername.value,
+                    activityTitle: searchActivityName.value
+                }
+            }),
             http.get('/users'),
             http.get('/activities')
         ])
-        enrollments.value = enrollRes.data || []
+        enrollments.value = enrollRes.data.list || []
+        total.value = enrollRes.data.total || 0
         users.value = userRes.data || []
         activities.value = activityRes.data.records || []
-        console.log("activityRes.data :", activityRes.data.records)
-        console.log("activities.value :", activities.value)
         // 映射用户名和活动名
         enrollments.value.forEach(e => {
             const user = users.value.find(u => u.id === e.userId)
@@ -138,12 +136,20 @@ async function fetchAll() {
 }
 
 function handleSearch() {
-    // 只需触发filteredEnrollments刷新
+    currentPage.value = 1
+    fetchAll()
 }
+
 function resetSearch() {
-    searchUserId.value = ''
-    searchActivityId.value = ''
+    searchActivityName.value = ''
     searchUsername.value = ''
+    currentPage.value = 1
+    fetchAll()
+}
+
+function handlePageChange(page: number) {
+    currentPage.value = page
+    fetchAll()
 }
 
 async function handleDelete(row: any) {

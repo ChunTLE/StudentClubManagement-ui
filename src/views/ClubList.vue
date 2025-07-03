@@ -3,46 +3,42 @@
     <el-card>
       <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
         <span style="font-size: 20px; font-weight: bold;">社团列表</span>
-        <el-button
-          v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'"
-          type="primary"
-          @click="openCreateDialog"
-        >新建社团</el-button>
+        <el-button v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'" type="primary"
+          @click="openCreateDialog">新建社团</el-button>
       </div>
-      <div v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER' || userStore.role === 'MEMBER'" style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+      <div v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER' || userStore.role === 'MEMBER'"
+        style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
         <el-input v-model="searchName" placeholder="输入社团名称" style="width: 200px;" />
         <el-button type="primary" @click="handleSearchClub">查询社团</el-button>
       </div>
       <div class="table-with-pagination">
         <div class="table-flex-grow">
           <el-table :data="paginatedClubs" style="width: 100%" v-loading="loading" border>
-          <el-table-column prop="id" label="ID" width="80" />
-          <el-table-column prop="name" label="社团名称" />
-          <el-table-column prop="description" label="简介" />
-          <el-table-column prop="leaderId" label="负责人ID" />
-          <el-table-column prop="createdAt" label="创建时间">
-            <template #default="scope">
-              {{ formatDate(scope.row.createdAt) }}
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'">
-            <template #default="scope">
-              <el-button size="small" @click="openEditDialog(scope.row)">修改</el-button>
-              <el-button v-if="userStore.role === 'ADMIN'" size="small" type="danger" @click="confirmDeleteClub(scope.row)">删除</el-button>
+            <el-table-column prop="name" label="社团名称" />
+            <el-table-column prop="description" label="简介" />
+            <el-table-column prop="leaderId" label="负责人">
+              <template #default="scope">
+                {{ userMap[scope.row.leaderId] || scope.row.leaderId }}
               </template>
             </el-table-column>
-          </el-table>  
+            <el-table-column prop="createdAt" label="创建时间">
+              <template #default="scope">
+                {{ formatDate(scope.row.createdAt) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'">
+              <template #default="scope">
+                <el-button size="small" @click="openEditDialog(scope.row)">修改</el-button>
+                <el-button v-if="userStore.role === 'ADMIN'" size="small" type="danger"
+                  @click="confirmDeleteClub(scope.row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
         </div>
-        
+
         <div class="table-pagination-wrapper">
-          <el-pagination
-            background
-            layout="total, prev, pager, next, jumper"
-            :total="total"
-            :page-size="pageSize"
-            :current-page="currentPage"
-            @current-change="handlePageChange"
-          />
+          <el-pagination background layout="total, prev, pager, next, jumper" :total="total" :page-size="pageSize"
+            :current-page="currentPage" @current-change="handlePageChange" />
         </div>
       </div>
     </el-card>
@@ -95,6 +91,15 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const loading = ref(false)
 
+const users = ref<any[]>([])
+const userMap = computed(() => {
+  const map: Record<string, string> = {}
+  users.value.forEach((u: any) => {
+    map[u.id] = u.realName || u.username
+  })
+  return map
+})
+
 const userStore = useUserStore()
 const showCreateDialog = ref(false)
 const createForm = ref({
@@ -114,7 +119,7 @@ const editLoading = ref(false)
 
 // 删除相关
 const showDeleteDialog = ref(false)
-const deleteClubId = ref<number|null>(null)
+const deleteClubId = ref<number | null>(null)
 const deleteClubName = ref('')
 const deleteLoading = ref(false)
 
@@ -139,13 +144,17 @@ function formatDate(dateStr: string) {
 async function fetchClubs() {
   loading.value = true
   try {
-    const res = await http.get('/clubs', {
-      params: {
-        page: 1,
-        size: 10000 // 拉取所有社团
-      }
-    })
-    allClubs.value = res.data.list
+    const [clubRes, userRes] = await Promise.all([
+      http.get('/clubs', {
+        params: {
+          page: 1,
+          size: 10000 // 拉取所有社团
+        }
+      }),
+      http.get('/users')
+    ])
+    allClubs.value = clubRes.data.list
+    users.value = userRes.data || []
   } finally {
     loading.value = false
   }
@@ -240,15 +249,17 @@ onMounted(() => {
 
 /* 保证分页始终在表格底部 */
 .table-with-pagination {
-  min-height: 500px; /* 可根据实际表格高度调整 */
+  min-height: 500px;
+  /* 可根据实际表格高度调整 */
   display: flex;
   flex-direction: column;
 }
+
 .table-flex-grow {
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-   /* 可根据实际需求调整 */
+  /* 可根据实际需求调整 */
 }
-</style> 
+</style>
