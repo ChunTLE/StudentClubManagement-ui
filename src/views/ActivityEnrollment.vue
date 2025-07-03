@@ -27,6 +27,10 @@
                     </template>
                 </el-table-column>
             </el-table>
+            <div style="margin-top: 16px; display: flex; justify-content: center;">
+                <el-pagination background layout="total, prev, pager, next, jumper" :total="total" :page-size="pageSize"
+                    :current-page="currentPage" @current-change="handlePageChange" />
+            </div>
         </el-card>
         <el-dialog v-model="showCreateDialog" title="新增报名" width="400px">
             <el-form :model="createForm" label-width="80px">
@@ -80,6 +84,10 @@ const users = ref<any[]>([])
 const activities = ref<any[]>([])
 const loading = ref(false)
 
+const total = ref(0)
+const pageSize = ref(10)
+const currentPage = ref(1)
+
 const searchUserId = ref('')
 const searchUsername = ref('')
 const searchActivityName = ref('')
@@ -112,11 +120,19 @@ async function fetchAll() {
     loading.value = true
     try {
         const [enrollRes, userRes, activityRes] = await Promise.all([
-            http.get('/enrollments'),
+            http.get('/enrollments', {
+                params: {
+                    pageNum: currentPage.value,
+                    pageSize: pageSize.value,
+                    username: searchUsername.value,
+                    activityTitle: searchActivityName.value
+                }
+            }),
             http.get('/users'),
             http.get('/activities')
         ])
-        enrollments.value = enrollRes.data || []
+        enrollments.value = enrollRes.data.list || []
+        total.value = enrollRes.data.total || 0
         users.value = userRes.data || []
         activities.value = activityRes.data.records || []
         // 映射用户名和活动名
@@ -132,12 +148,19 @@ async function fetchAll() {
 }
 
 function handleSearch() {
-    // 只需触发filteredEnrollments刷新
+    currentPage.value = 1
+    fetchAll()
 }
 
 function resetSearch() {
     searchActivityName.value = ''
     searchUsername.value = ''
+    currentPage.value = 1
+    fetchAll()
+}
+
+function handlePageChange(page: number) {
+    currentPage.value = page
     fetchAll()
 }
 
