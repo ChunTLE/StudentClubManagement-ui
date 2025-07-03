@@ -44,6 +44,11 @@ const router = createRouter({
       name: 'ActivityEnrollment',
       component: () => import('../views/ActivityEnrollment.vue')
     },
+    {
+      path: '/users',
+      name: 'MemberShipList',
+      component: () => import('../views/MemberShipList.vue')
+    },
   ],
 })
 

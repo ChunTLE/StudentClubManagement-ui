@@ -23,7 +23,7 @@
                             <div class="feature-desc">查看、创建、编辑和删除活动信息</div>
                         </el-card>
                     </el-col>
-                    <el-col :span="12">
+                    <el-col :span="6">
                         <el-card shadow="hover" class="feature-card" @click="goTo('DepartmentList')">
                             <div class="feature-title">部门管理</div>
                             <div class="feature-desc">查看、创建、编辑和删除部门信息</div>
