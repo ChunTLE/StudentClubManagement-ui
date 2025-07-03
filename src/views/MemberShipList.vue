@@ -42,6 +42,8 @@
                 <span v-else>{{ scope.row.status }}</span>
               </template>
             </el-table-column>
+            <el-table-column prop="clubName" label="社团名称" />
+            <el-table-column prop="departmentName" label="部门名称" />
             <el-table-column prop="createdAt" label="创建时间">
               <template #default="scope">
                 {{ formatDate(scope.row.createdAt) }}
@@ -95,6 +97,26 @@
             <el-option label="管理员" value="ADMIN" />
           </el-select>
         </el-form-item>
+        <el-form-item label="社团" prop="clubId">
+          <el-select v-model="editForm.clubId" placeholder="选择社团" style="width: 100%;">
+            <el-option 
+              v-for="club in clubs" 
+              :key="club.id" 
+              :label="club.name" 
+              :value="club.id" 
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="部门" prop="departmentId">
+          <el-select v-model="editForm.departmentId" placeholder="选择部门" style="width: 100%;" clearable>
+            <el-option 
+              v-for="dept in departments" 
+              :key="dept.id" 
+              :label="dept.name" 
+              :value="dept.id" 
+            />
+          </el-select>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="showEditDialog = false">取消</el-button>
@@ -129,7 +151,9 @@ const editForm = ref<any>({
   username: '',
   email: '',
   realName: '',
-  role: 'MEMBER'
+  role: 'MEMBER',
+  clubId: null,
+  departmentId: null
 })
 const editLoading = ref(false)
 
@@ -137,8 +161,24 @@ const editRules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }],
   realName: [{ required: true, message: '请输入真实姓名', trigger: 'blur' }],
-  role: [{ required: true, message: '请选择角色', trigger: 'change' }]
+  role: [{ required: true, message: '请选择角色', trigger: 'change' }],
+  clubId: [{ required: true, message: '请选择社团', trigger: 'change' }]
 }
+
+const clubs = ref<any[]>([])
+const departments = ref<any[]>([])
+
+const clubMap = computed(() => {
+  const map: Record<string, string> = {}
+  clubs.value.forEach((c: any) => { map[String(c.id)] = c.name })
+  return map
+})
+
+const departmentMap = computed(() => {
+  const map: Record<string, string> = {}
+  departments.value.forEach((d: any) => { map[String(d.id)] = d.name })
+  return map
+})
 
 const filteredMemberships = computed(() => {
   let filtered = allMemberships.value
@@ -182,23 +222,29 @@ function formatDate(dateStr: string) {
 async function fetchMemberships() {
   loading.value = true
   try {
-    const [usersRes, membershipsRes] = await Promise.all([
+    const [usersRes, membershipsRes, clubsRes, deptRes] = await Promise.all([
       http.get('/users'),
-      http.get('/memberships')
+      http.get('/memberships'),
+      http.get('/clubs', { params: { page: 1, size: 10000 } }),
+      http.get('/departments')
     ])
-    
     const users = usersRes.data || []
     const memberships = membershipsRes.data.list || []
-    
-    // 只合并会员ID
+    clubs.value = clubsRes.data.data?.list || clubsRes.data.list || []
+    departments.value = deptRes.data.records || []
+
+    // 合并数据
     const mergedData = users.map((user: any) => {
       const membership = memberships.find((m: any) => m.userId === user.id)
       return {
         ...user,
+        clubId: membership ? membership.clubId : null,
+        departmentId: membership ? membership.departmentId : null,
+        clubName: membership && clubMap.value[String(membership.clubId)] ? clubMap.value[String(membership.clubId)] : '-',
+        departmentName: membership && departmentMap.value[String(membership.departmentId)] ? departmentMap.value[String(membership.departmentId)] : '-',
         membershipId: membership ? membership.id : null
       }
     })
-    
     allMemberships.value = mergedData
   } catch (error) {
     console.error('获取会员列表失败:', error)
@@ -243,16 +289,30 @@ async function handleEditMembership() {
       realName: editForm.value.realName,
       role: editForm.value.role
     })
-
-    // 这里只保留会员ID的更新（如有需要可补充）
-    // await http.put(`/memberships/${editForm.value.membershipId}`, {})
-        
+    
+    // 更新会员关系（社团和部门）
+    await http.put(`/memberships/${editForm.value.membershipId}/club-department`, {
+      clubId: editForm.value.clubId,
+      departmentId: editForm.value.departmentId
+    })
+    
     showEditDialog.value = false
     ElMessage.success('修改会员信息成功')
     fetchMemberships()
   } catch (error) {
-    console.error('修改会员信息失败:', error)
-    ElMessage.error('修改会员信息失败')
+    const err = error as any;
+    let msg = '修改会员信息失败';
+    if (err && err.message) {
+      msg = err.message;
+    } else if (err && err.response && err.response.data && err.response.data.message) {
+      msg = err.response.data.message;
+    } else {
+      try {
+        msg = JSON.stringify(err);
+      } catch (e) {}
+    }
+    ElMessage.error(msg);
+    console.error('详细错误信息:', err);
   } finally {
     editLoading.value = false
   }
@@ -267,17 +327,28 @@ async function toggleUserStatus(row: any) {
       type: 'warning'
     })
     
-    await http.put(`/users/${row.id}/status`, {
-      status: row.status === 1 ? 0 : 1
+    await http.put(`/users/${row.id}/status`, null, {
+      params: {
+        status: row.status === 1 ? 0 : 1
+      }
     })
     
     ElMessage.success(`${action}用户成功`)
     fetchMemberships()
   } catch (error) {
-    if (error !== 'cancel') {
-      console.error('操作失败:', error)
-      ElMessage.error('操作失败')
+    const err = error as any;
+    let msg = '操作失败';
+    if (err && err.message) {
+      msg = err.message;
+    } else if (err && err.response && err.response.data && err.response.data.message) {
+      msg = err.response.data.message;
+    } else {
+      try {
+        msg = JSON.stringify(err);
+      } catch (e) {}
     }
+    ElMessage.error(msg);
+    console.error('详细错误信息:', err);
   }
 }
 

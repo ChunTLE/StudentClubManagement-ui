@@ -41,6 +41,12 @@
                             <div class="feature-desc">管理活动报名信息</div>
                         </el-card>
                     </el-col>
+                    <el-col :span="6">
+                        <el-card shadow="hover" class="feature-card" @click="goTo('MemberShipList')">
+                            <div class="feature-title">用户信息管理</div>
+                            <div class="feature-desc">管理用户信息</div>
+                        </el-card>
+                    </el-col>
                 </el-row>
             </div>
         </el-card>
