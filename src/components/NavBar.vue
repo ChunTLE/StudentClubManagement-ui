@@ -13,6 +13,7 @@
         <div class="user-info">
             <el-dropdown @command="handleCommand">
                 <span class="user-dropdown">
+                    <el-avatar :src="userStore.avatar || defaultAvatar" size="small" style="margin-right: 8px" />
                     {{ userStore.realName || userStore.username }}
                     <el-icon class="el-icon--right"><arrow-down /></el-icon>
                 </span>
@@ -31,6 +32,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { computed, watch } from 'vue'
 import { useUserStore } from '../stores/user'
 import { ArrowDown } from '@element-plus/icons-vue'
+import { ElAvatar } from 'element-plus'
+import defaultAvatar from '../assets/default-avatar.png'
 
 const router = useRouter()
 const route = useRoute()
@@ -54,7 +57,7 @@ function onSelect(index: string) {
 
 function handleCommand(command: string) {
     if (command === 'logout') {
-        userStore.clearUser()
+        userStore.$reset()
         router.push('/login')
     }
 }
