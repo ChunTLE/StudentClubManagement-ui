@@ -25,11 +25,12 @@
             {{ formatDate(scope.row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'" width="150">
+        <el-table-column label="操作" v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER' || userStore.role === 'MEMBER'" width="200">
           <template #default="scope">
             <div class="action-btns-horizontal">
-              <el-button size="small" @click="openEditDialog(scope.row)">修改</el-button>
+              <el-button v-if ="userStore.role === 'ADMIN' || userStore.role === 'LEADER'" size="small" @click="openEditDialog(scope.row)">修改</el-button>
               <el-button v-if="userStore.role === 'ADMIN'" size="small" type="danger" @click="confirmDeleteDepartment(scope.row)">删除</el-button>
+              <el-button v-if ="userStore.role === 'MEMBER'" size="small" @click="handleJoinDepartment(scope.row)">报名</el-button>
             </div>
           </template>
         </el-table-column>
@@ -236,6 +237,23 @@ async function handleDeleteDepartment() {
     ElMessage.error(e?.message || '删除部门失败')
   } finally {
     deleteLoading.value = false
+  }
+}
+
+async function handleJoinDepartment(row: any) {
+  try {
+    await http.post('/memberships/join', null, {
+    params: {
+      userId: userStore.userId,
+      clubId: row.clubId,
+      departmentId: row.id,
+      position: '成员'
+    }
+  })
+    ElMessage.success('报名成功！')
+    fetchDepartments()
+  } catch (e: any) {
+
   }
 }
 
