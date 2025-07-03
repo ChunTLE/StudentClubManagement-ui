@@ -11,8 +11,7 @@
                 <el-button type="primary" @click="handleSearch">查询</el-button>
                 <el-button @click="resetSearch">重置</el-button>
             </div>
-            <el-table :data="filteredEnrollments" style="width: 100%" v-loading="loading" border>
-
+            <el-table :data="enrollments" style="width: 100%" v-loading="loading" border>
                 <el-table-column prop="username" label="用户名" />
                 <el-table-column prop="activityTitle" label="活动名称" />
                 <el-table-column prop="enrolledAt" label="报名时间">
@@ -76,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import http from '../config/http'
 
 const enrollments = ref<any[]>([])
@@ -99,17 +98,6 @@ const createLoading = ref(false)
 const showEditDialog = ref(false)
 const editForm = ref({ id: '', userId: '', activityId: '' })
 const editLoading = ref(false)
-
-const filteredEnrollments = computed(() => {
-    let result = enrollments.value
-    if (searchUsername.value) {
-        result = result.filter(e => (e.username || '').includes(searchUsername.value))
-    }
-    if (searchActivityName.value) {
-        result = result.filter(e => (e.activityTitle || '').includes(searchActivityName.value))
-    }
-    return result
-})
 
 function formatDate(dateStr: string) {
     if (!dateStr) return ''
