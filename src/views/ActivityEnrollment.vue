@@ -6,9 +6,8 @@
                 <el-button type="primary" @click="showCreateDialog = true">新增报名</el-button>
             </div>
             <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-                <el-input v-model="searchUserId" placeholder="按用户ID筛选" style="width: 140px;" />
-                <el-input v-model="searchActivityId" placeholder="按活动ID筛选" style="width: 140px;" />
                 <el-input v-model="searchUsername" placeholder="按用户名筛选" style="width: 140px;" />
+                <el-input v-model="searchActivityName" placeholder="按活动名称筛选" style="width: 140px;" />
                 <el-button type="primary" @click="handleSearch">查询</el-button>
                 <el-button @click="resetSearch">重置</el-button>
             </div>
@@ -82,8 +81,8 @@ const activities = ref<any[]>([])
 const loading = ref(false)
 
 const searchUserId = ref('')
-const searchActivityId = ref('')
 const searchUsername = ref('')
+const searchActivityName = ref('')
 
 const showCreateDialog = ref(false)
 const createForm = ref({ userId: '', activityId: '' })
@@ -95,14 +94,11 @@ const editLoading = ref(false)
 
 const filteredEnrollments = computed(() => {
     let result = enrollments.value
-    if (searchUserId.value) {
-        result = result.filter(e => String(e.userId) === String(searchUserId.value))
-    }
-    if (searchActivityId.value) {
-        result = result.filter(e => String(e.activityId) === String(searchActivityId.value))
-    }
     if (searchUsername.value) {
         result = result.filter(e => (e.username || '').includes(searchUsername.value))
+    }
+    if (searchActivityName.value) {
+        result = result.filter(e => (e.activityTitle || '').includes(searchActivityName.value))
     }
     return result
 })
@@ -123,8 +119,6 @@ async function fetchAll() {
         enrollments.value = enrollRes.data || []
         users.value = userRes.data || []
         activities.value = activityRes.data.records || []
-        console.log("activityRes.data :", activityRes.data.records)
-        console.log("activities.value :", activities.value)
         // 映射用户名和活动名
         enrollments.value.forEach(e => {
             const user = users.value.find(u => u.id === e.userId)
@@ -140,10 +134,11 @@ async function fetchAll() {
 function handleSearch() {
     // 只需触发filteredEnrollments刷新
 }
+
 function resetSearch() {
-    searchUserId.value = ''
-    searchActivityId.value = ''
+    searchActivityName.value = ''
     searchUsername.value = ''
+    fetchAll()
 }
 
 async function handleDelete(row: any) {
