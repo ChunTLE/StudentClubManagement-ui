@@ -7,41 +7,45 @@
                 <el-row :gutter="20">
                     <el-col :span="6">
                         <el-card shadow="hover" class="feature-card" @click="goTo('ClubList')">
-                            <div class="feature-title">社团管理</div>
+                            <div class="feature-title">社团信息</div>
                             <div class="feature-desc">查看、创建、编辑和删除社团信息</div>
                         </el-card>
                     </el-col>
-                    <el-col :span="6">
-                        <el-card shadow="hover" class="feature-card" @click="goTo('Finance')">
-                            <div class="feature-title">财政管理</div>
-                            <div class="feature-desc">管理社团财务收支记录</div>
-                        </el-card>
-                    </el-col>
-                    <el-col :span="6">
-                        <el-card shadow="hover" class="feature-card" @click="goTo('ActivityList')">
-                            <div class="feature-title">活动管理</div>
-                            <div class="feature-desc">查看、创建、编辑和删除活动信息</div>
-                        </el-card>
-                    </el-col>
-                    <el-col :span="6">
-                        <el-card shadow="hover" class="feature-card" @click="goTo('DepartmentList')">
-                            <div class="feature-title">部门管理</div>
-                            <div class="feature-desc">查看、创建、编辑和删除部门信息</div>
-                        </el-card>  
-                    </el-col>     
-                    <el-col :span="6">
+                    <el-col :span="6" v-if="userStore.role !== 'MEMBER'">
                         <el-card shadow="hover" class="feature-card" @click="goTo('MembershipReview')">
                             <div class="feature-title">加入社团审核</div>
                             <div class="feature-desc">审核入社申请，管理成员资格</div>
                         </el-card>
                     </el-col>
                     <el-col :span="6">
+                        <el-card shadow="hover" class="feature-card" @click="goTo('DepartmentList')">
+                            <div class="feature-title" v-if="userStore.role !== 'MEMBER'">部门管理</div>
+                            <div class="feature-title" v-if="userStore.role == 'MEMBER'">加入社团部门</div>
+                            <div class="feature-desc">查看、创建、编辑和删除部门信息</div>
+                        </el-card>
+                    </el-col>
+
+                    <el-col :span="6" v-if="userStore.role !== 'MEMBER'">
+                        <el-card shadow="hover" class="feature-card" @click="goTo('Finance')">
+                            <div class="feature-title">财政管理</div>
+                            <div class="feature-desc">管理社团财务收支记录</div>
+                        </el-card>
+                    </el-col>
+                    <el-col :span="6">
                         <el-card shadow="hover" class="feature-card" @click="goTo('ActivityEnrollment')">
-                            <div class="feature-title">活动报名管理</div>
+                            <div class="feature-title">活动报名信息</div>
                             <div class="feature-desc">管理活动报名信息</div>
                         </el-card>
                     </el-col>
                     <el-col :span="6">
+                        <el-card shadow="hover" class="feature-card" @click="goTo('ActivityList')">
+                            <div class="feature-title" v-if="userStore.role !== 'MEMBER'">活动管理</div>
+                            <div class="feature-title" v-if="userStore.role == 'MEMBER'">报名活动</div>
+                            <div class="feature-desc">查看、创建、编辑和删除活动信息</div>
+                        </el-card>
+                    </el-col>
+
+                    <el-col :span="6" v-if="userStore.role !== 'MEMBER'">
                         <el-card shadow="hover" class="feature-card" @click="goTo('MemberShipList')">
                             <div class="feature-title">用户信息管理</div>
                             <div class="feature-desc">管理用户信息</div>
@@ -55,7 +59,9 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { useUserStore } from '../stores/user'
 const router = useRouter()
+const userStore = useUserStore()
 function goTo(name: string) {
     router.push({ name })
 }

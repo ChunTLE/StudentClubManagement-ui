@@ -30,7 +30,7 @@
             <div class="action-btns-horizontal">
               <el-button v-if ="userStore.role === 'ADMIN' || userStore.role === 'LEADER'" size="small" @click="openEditDialog(scope.row)">修改</el-button>
               <el-button v-if="userStore.role === 'ADMIN'" size="small" type="danger" @click="confirmDeleteDepartment(scope.row)">删除</el-button>
-              <el-button v-if ="userStore.role === 'MEMBER'" size="small" @click="handleJoinDepartment(scope.row)">报名</el-button>
+              <el-button v-if ="userStore.role === 'MEMBER'" size="small" type="primary" @click="handleJoinDepartment(scope.row)">报名</el-button>
             </div>
           </template>
         </el-table-column>

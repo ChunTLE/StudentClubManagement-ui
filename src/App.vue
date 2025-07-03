@@ -1,16 +1,29 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import NavBar from './components/NavBar.vue'
+import { RouterLink, RouterView, useRoute } from 'vue-router'
+import * as NavBar from './components/NavBar.vue'
+const route = useRoute()
 </script>
 
 <template>
-  <router-view v-slot="{ Component, route }">
-    <NavBar v-if="route.name !== 'Home' && route.name !== 'Login'" />
-    <component :is="Component" />
-  </router-view>
+  <div class="app-layout">
+    <NavBar.default v-if="route.name !== 'Home' && route.name !== 'Login'" />
+    <div class="main-content">
+      <router-view />
+    </div>
+  </div>
 </template>
 
 <style scoped>
+.app-layout {
+  display: flex;
+  height: 100vh;
+}
+.main-content {
+  flex: 1;
+  padding: 24px;
+  overflow: auto;
+}
+
 header {
   line-height: 1.5;
   max-height: 100vh;

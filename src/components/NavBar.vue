@@ -1,14 +1,16 @@
 <template>
-    <div class="nav-container">
-        <el-menu :default-active="activeMenu" mode="horizontal" class="nav-bar" @select="onSelect">
+    <div class="nav-layout">
+        <el-menu :default-active="activeMenu" mode="vertical" class="nav-bar" @select="onSelect">
             <el-menu-item index="/">首页</el-menu-item>
-            <el-menu-item index="/clubs">社团管理</el-menu-item>
-            <el-menu-item index="/finance">财政管理</el-menu-item>
-            <el-menu-item index="/activities">活动管理</el-menu-item>
-            <el-menu-item index="/departments">部门管理</el-menu-item>
-            <el-menu-item index="/membership-review">加入社团审核</el-menu-item>
-            <el-menu-item index="/enrollments">活动报名管理</el-menu-item>
-            <el-menu-item index="/users">用户信息管理</el-menu-item>
+            <el-menu-item index="/clubs">社团信息</el-menu-item>
+            <el-menu-item index="/departments" v-if="userStore.role == 'MEMBER'">加入社团部门</el-menu-item>
+            <el-menu-item index="/finance" v-if="userStore.role !== 'MEMBER'">财政管理</el-menu-item>
+            <el-menu-item index="/activities" v-if="userStore.role !== 'MEMBER'">活动管理</el-menu-item>
+            <el-menu-item index="/enrollments">活动报名信息</el-menu-item>
+            <el-menu-item index="/activities" v-if="userStore.role == 'MEMBER'">报名活动</el-menu-item>
+            <el-menu-item index="/departments" v-if="userStore.role !== 'MEMBER'">部门管理</el-menu-item>
+            <el-menu-item index="/membership-review" v-if="userStore.role !== 'MEMBER'">加入社团审核</el-menu-item>
+            <el-menu-item index="/users" v-if="userStore.role !== 'MEMBER'">用户信息管理</el-menu-item>
         </el-menu>
 
         <div class="user-info">
@@ -20,7 +22,7 @@
                 </span>
                 <template #dropdown>
                     <el-dropdown-menu>
-                        <el-dropdown-item command="logout">个人信息</el-dropdown-item>
+                        <el-dropdown-item command="profile">个人信息</el-dropdown-item>
                         <el-dropdown-item command="logout">退出登录</el-dropdown-item>
                     </el-dropdown-menu>
                 </template>
@@ -60,27 +62,32 @@ function handleCommand(command: string) {
     if (command === 'logout') {
         userStore.$reset()
         router.push('/login')
+    } else if (command === 'profile') {
+        router.push('/user-profile')
     }
 }
 </script>
 
 <style scoped>
-.nav-container {
+.nav-layout {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #f0f0f0;
-    margin-bottom: 24px;
+    height: 100vh;
 }
 
 .nav-bar {
-    flex: 1;
+    width: 200px;
+    min-height: 100vh;
+    border-right: 1px solid #f0f0f0;
     font-size: 16px;
-    border-bottom: none;
 }
 
 .user-info {
-    padding: 0 20px;
+    position: absolute;
+    left: 0;
+    bottom: 20px;
+    width: 200px;
+    display: flex;
+    justify-content: center;
 }
 
 .user-dropdown {

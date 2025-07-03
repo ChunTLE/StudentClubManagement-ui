@@ -2,7 +2,7 @@
   <div class="membership-list-container">
     <el-card>
       <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size: 20px; font-weight: bold;">会员列表</span>
+        <span style="font-size: 20px; font-weight: bold;">用户信息列表</span>
       </div>
       
       <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
@@ -79,7 +79,7 @@
     </el-card>
 
     <!-- 编辑会员对话框 -->
-    <el-dialog v-model="showEditDialog" title="修改会员信息" width="500px">
+    <el-dialog v-model="showEditDialog" title="修改用户信息" width="500px">
       <el-form :model="editForm" label-width="100px" :rules="editRules" ref="editFormRef">
         <el-form-item label="用户名" prop="username">
           <el-input v-model="editForm.username" autocomplete="off" />
@@ -226,25 +226,29 @@ async function fetchMemberships() {
       http.get('/users'),
       http.get('/memberships'),
       http.get('/clubs', { params: { page: 1, size: 10000 } }),
-      http.get('/departments')
+      http.get('/departments/all')
     ])
     const users = usersRes.data || []
     const memberships = membershipsRes.data.list || []
     clubs.value = clubsRes.data.data?.list || clubsRes.data.list || []
-    departments.value = deptRes.data.records || []
+    departments.value = deptRes.data || []
+
+    console.log('users:', users)
+    console.log('memberships:', memberships)
 
     // 合并数据
     const mergedData = users.map((user: any) => {
-      const membership = memberships.find((m: any) => m.userId === user.id)
-      return {
-        ...user,
-        clubId: membership ? membership.clubId : null,
-        departmentId: membership ? membership.departmentId : null,
-        clubName: membership && clubMap.value[String(membership.clubId)] ? clubMap.value[String(membership.clubId)] : '-',
-        departmentName: membership && departmentMap.value[String(membership.departmentId)] ? departmentMap.value[String(membership.departmentId)] : '-',
-        membershipId: membership ? membership.id : null
-      }
-    })
+    const membership = memberships.find((m: any) => m.userId === user.id)
+    return {
+    ...user,
+    id: user.id, // 确保有 id 字段
+    clubId: membership ? membership.clubId : null,
+    departmentId: membership ? membership.departmentId : null,
+    clubName: membership && clubMap.value[String(membership.clubId)] ? clubMap.value[String(membership.clubId)] : '-',
+    departmentName: membership && departmentMap.value[String(membership.departmentId)] ? departmentMap.value[String(membership.departmentId)] : '-',
+    membershipId: membership ? membership.id : null
+  }
+})
     allMemberships.value = mergedData
   } catch (error) {
     console.error('获取会员列表失败:', error)
@@ -277,7 +281,17 @@ function openEditDialog(row: any) {
 
 async function handleEditMembership() {
   if (!editFormRef.value) return
+
+  if (!editForm.value.id) {
+    ElMessage.error('用户ID不存在，无法保存');
+    return;
+  }
   
+  if (!editForm.value.membershipId) {
+    ElMessage.error('会员ID不存在，无法保存');
+    return;
+  }
+
   try {
     await editFormRef.value.validate()
     editLoading.value = true

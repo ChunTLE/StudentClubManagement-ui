@@ -15,7 +15,7 @@
       </div>
       <el-table :data="paginatedActivities" style="width: 100%" v-loading="loading" border>
         <el-table-column prop="title" label="活动名称" />
-        <el-table-column prop="content" label="简介" />
+        <el-table-column prop="content" label="简介" width="180" />
         <el-table-column prop="location" label="地点" />
         <el-table-column label="所属社团">
            <template #default="scope">
@@ -32,11 +32,12 @@
             {{ formatDate(scope.row.endTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'" width="150">
+        <el-table-column label="操作" width="200">
           <template #default="scope">
             <div class="action-btns-horizontal">
-              <el-button size="small" @click="openEditDialog(scope.row)">修改</el-button>
+              <el-button size="small" v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'" @click="openEditDialog(scope.row)">修改</el-button>
               <el-button v-if="userStore.role === 'ADMIN'" size="small" type="danger" @click="confirmDeleteActivity(scope.row)">删除</el-button>
+              <el-button v-if="userStore.role === 'MEMBER'" size="small" type="primary" @click="handleEnroll(scope.row)">报名</el-button>
             </div>
           </template>
         </el-table-column>
@@ -57,7 +58,7 @@
         <el-form-item label="活动名称">
           <el-input v-model="createForm.title" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="简介">
+        <el-form-item label="简介" >
           <el-input v-model="createForm.content" autocomplete="off" />
         </el-form-item>
         <el-form-item label="地点">
@@ -160,13 +161,13 @@
 import { ref, onMounted, computed } from 'vue'
 import http from '../config/http'
 import { useUserStore } from '../stores/user'
+import { ElMessage } from 'element-plus'
 
 const activities = ref<any[]>([])
 const total = computed(() => filteredActivities.value.length)
 const pageSize = ref(10)
 const currentPage = ref(1)
 const loading = ref(false)
-const searchName = ref('')
 const searchTitle = ref('')
 const userStore = useUserStore()
 console.log('userStore.role', userStore.role)
@@ -314,6 +315,18 @@ async function handleDeleteActivity() {
     fetchActivities()
   } finally {
     deleteLoading.value = false
+  }
+}
+
+async function handleEnroll(row: any) {
+  try {
+    await http.post('/enrollments', {
+      userId: userStore.userId,
+      activityId: row.id
+    })
+    ElMessage.success('报名成功！')
+  } catch (e: any) {
+
   }
 }
 
