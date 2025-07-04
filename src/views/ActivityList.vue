@@ -13,7 +13,7 @@
         <el-input v-model="searchTitle" placeholder="输入活动名称" style="width: 200px;" />
         <el-button type="primary" @click="handleSearchActivity">查询活动</el-button>
       </div>
-      <el-table :data="paginatedActivities" style="width: 100%" v-loading="loading" border>
+      <el-table :data="activities" style="width: 100%" v-loading="loading" border>
         <el-table-column prop="title" label="活动名称" />
         <el-table-column prop="content" label="简介" width="180" />
         <el-table-column prop="location" label="地点" />
@@ -164,7 +164,7 @@ import { useUserStore } from '../stores/user'
 import { ElMessage } from 'element-plus'
 
 const activities = ref<any[]>([])
-const total = computed(() => filteredActivities.value.length)
+const total = ref(0)
 const pageSize = ref(10)
 const currentPage = ref(1)
 const loading = ref(false)
@@ -199,18 +199,20 @@ const editForm = ref({
 })
 const editLoading = ref(false)
 
-const filteredActivities = computed(() => {
-  if (!searchTitle.value) return activities.value
-  return (activities.value || []).filter((activity: any) => activity.title && activity.title.includes(searchTitle.value))
+const clubs = ref<any[]>([])
+const clubMap = computed(() => {
+  const map: Record<number, string> = {}
+  clubs.value.forEach((club: any) => {
+    map[club.id] = club.name
+  })
+  return map
 })
 
-
-const paginatedActivities = computed(() => {
-  const arr = filteredActivities.value || []
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return arr.slice(start, end)
-})
+async function fetchClubs() {
+  // 拉取所有社团
+  const res = await http.get('/clubs', { params: { page: 1, size: 1000 } })
+  clubs.value = res.data.list || []
+}
 
 async function fetchActivities() {
   loading.value = true
@@ -218,12 +220,12 @@ async function fetchActivities() {
     const res = await http.get('/activities', {
       params: {
         pageNum: currentPage.value,
-        pageSize: pageSize.value
+        pageSize: pageSize.value,
+        title: searchTitle.value || undefined
       }
     })
-    // 假设后端返回 { code: 0, data: { list: [...], total: xxx } }
-    activities.value = res.data.records
-    // total.value = res.data.total
+    activities.value = res.data.records || []
+    total.value = res.data.total || 0
   } finally {
     loading.value = false
   }
@@ -235,7 +237,8 @@ function handlePageChange(page: number) {
 }
 
 async function handleSearchActivity() {
-  // Implementation of handleSearchActivity
+  currentPage.value = 1
+  fetchActivities()
 }
 
 function openCreateDialog() {
@@ -256,21 +259,6 @@ async function handleCreateActivity() {
   } finally {
     createLoading.value = false
   }
-}
-
-const clubs = ref<any[]>([])
-const clubMap = computed(() => {
-  const map: Record<number, string> = {}
-  clubs.value.forEach((club: any) => {
-    map[club.id] = club.name
-  })
-  return map
-})
-
-async function fetchClubs() {
-  // 拉取所有社团
-  const res = await http.get('/clubs', { params: { page: 1, size: 1000 } })
-  clubs.value = res.data.list || []
 }
 
 function formatDate(dateStr: string) {

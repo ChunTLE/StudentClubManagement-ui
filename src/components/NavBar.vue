@@ -1,7 +1,7 @@
 <template>
     <div class="nav-layout">
         <el-menu :default-active="activeMenu" mode="vertical" class="nav-bar" @select="onSelect">
-            <el-menu-item index="/">首页</el-menu-item>
+            <el-menu-item index="/home">首页</el-menu-item>
             <el-menu-item index="/clubs">社团信息</el-menu-item>
             <el-menu-item index="/departments" v-if="userStore.role == 'MEMBER'">加入社团部门</el-menu-item>
             <el-menu-item index="/finance" v-if="userStore.role !== 'MEMBER'">财政管理</el-menu-item>

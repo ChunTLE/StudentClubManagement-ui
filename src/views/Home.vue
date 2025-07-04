@@ -6,6 +6,12 @@
             <div class="features">
                 <el-row :gutter="20">
                     <el-col :span="6">
+                        <el-card shadow="hover" class="feature-card" @click="goTo('PieChartView')">
+                            <div class="feature-title">社团人数统计</div>
+                            <div class="feature-desc">可视化展示各社团人数占比</div>
+                        </el-card>
+                    </el-col>
+                    <el-col :span="6">
                         <el-card shadow="hover" class="feature-card" @click="goTo('ClubList')">
                             <div class="feature-title">社团信息</div>
                             <div class="feature-desc">查看、创建、编辑和删除社团信息</div>
@@ -51,6 +57,7 @@
                             <div class="feature-desc">管理用户信息</div>
                         </el-card>
                     </el-col>
+                    
                 </el-row>
             </div>
         </el-card>
