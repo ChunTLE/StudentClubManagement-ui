@@ -51,11 +51,14 @@
                 {{ formatDate(scope.row.createdAt) }}
               </template>
             </el-table-column>
-            <el-table-column label="操作" v-if="userStore.role === 'ADMIN' || 'LEADER'">
+            <el-table-column label="操作" v-if="userStore.role !== 'MEMBER'">
               <template #default="scope">
-                <el-button size="small" @click="openEditDialog(scope.row)">修改</el-button>
+                <el-button size="small" @click="openEditDialog(scope.row)"
+                  v-if="!(userStore.role === 'LEADER' && scope.row.role === 'ADMIN')">
+                  修改
+                </el-button>
                 <el-button size="small" :type="scope.row.status === 1 ? 'danger' : 'success'"
-                  @click="toggleUserStatus(scope.row)" v-if="userStore.role === 'ADMIN'">
+                  @click="toggleUserStatus(scope.row)" v-if="userStore.role === 'ADMIN' && scope.row.role !== 'ADMIN'">
                   {{ scope.row.status === 1 ? '封禁' : '解封' }}
                 </el-button>
               </template>
@@ -82,19 +85,19 @@
         <el-form-item label="真实姓名" prop="realName">
           <el-input v-model="editForm.realName" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="角色" prop="role" v-if="userStore.role === 'ADMIN'">
+        <el-form-item label="角色" prop="role" v-if="userStore.role === 'ADMIN' && !isEditingSelf">
           <el-select v-model="editForm.role" placeholder="选择角色" style="width: 100%;">
             <el-option label="干事" value="MEMBER" />
             <el-option label="社团负责人" value="LEADER" />
             <el-option label="管理员" value="ADMIN" />
           </el-select>
         </el-form-item>
-        <el-form-item label="社团" prop="clubId">
+        <el-form-item label="社团" prop="clubId" v-if="shouldShowClubAndDept && !isEditingSelf">
           <el-select v-model="editForm.clubId" placeholder="选择社团" style="width: 100%;">
             <el-option v-for="club in clubs" :key="club.id" :label="club.name" :value="club.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="部门" prop="departmentId">
+        <el-form-item label="部门" prop="departmentId" v-if="shouldShowClubAndDept && !isEditingSelf">
           <el-select v-model="editForm.departmentId" placeholder="选择部门" style="width: 100%;" clearable>
             <el-option label="无" :value="null" />
             <el-option v-for="dept in departments" :key="dept.id" :label="dept.name" :value="dept.id" />
@@ -110,7 +113,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, type Ref } from 'vue'
 import http from '../config/http'
 import { useUserStore } from '../stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -145,7 +148,21 @@ const editRules = {
   email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }],
   realName: [{ required: true, message: '请输入真实姓名', trigger: 'blur' }],
   role: [{ required: true, message: '请选择角色', trigger: 'change' }],
-  clubId: [{ required: true, message: '请选择社团', trigger: 'change' }]
+  clubId: [{ required: true, message: '请选择社团', trigger: 'change' }],
+  departmentId: [
+    {
+      required: true,
+      message: '请选择部门',
+      trigger: 'change',
+      validator: (_rule: any, value: any, callback: any) => {
+        if (editForm.value.role === 'MEMBER' && (value === null || value === undefined || value === '')) {
+          callback(new Error('请选择部门'))
+        } else {
+          callback()
+        }
+      }
+    }
+  ]
 }
 
 const clubs = ref<any[]>([])
@@ -162,6 +179,17 @@ const departmentMap = computed(() => {
   const map: Record<string, string> = {}
   allDepartments.value.forEach((d: any) => { map[String(d.id)] = d.name })
   return map
+})
+
+const isEditingSelf: Ref<boolean> = computed(() => {
+  return userStore.role === 'ADMIN' && editForm.value.id === userStore.userId
+})
+
+const shouldShowClubAndDept = computed(() => {
+  if (userStore.role === 'LEADER' && (editForm.value.role === 'LEADER' || editForm.value.role === 'ADMIN')) {
+    return false
+  }
+  return true
 })
 
 const filteredMemberships = computed(() => {
@@ -216,9 +244,6 @@ async function fetchMemberships() {
     const memberships = membershipsRes.data.list || []
     clubs.value = clubsRes.data.data?.list || clubsRes.data.list || []
     allDepartments.value = deptRes.data || []
-
-    console.log('users:', users)
-    console.log('memberships:', memberships)
 
     // 合并数据
     const mergedData = users.map((user: any) => {
@@ -305,17 +330,28 @@ async function handleEditMembership() {
   } catch (error) {
     const err = error as any;
     let msg = '修改会员信息失败';
+    ElMessage.error(msg)
     if (err && err.message) {
       msg = err.message;
-    } else if (err && err.response && err.response.data && err.response.data.message) {
-      msg = err.response.data.message;
+    } else if (err && err.response && err.response.data) {
+      // 优化：只显示后端返回的第一个message
+      const data = err.response.data;
+      if (typeof data === 'object' && data !== null) {
+        // 如果是字段校验错误
+        const firstKey = Object.keys(data)[0];
+        if (Array.isArray(data[firstKey]) && data[firstKey][0]?.message) {
+          msg = data[firstKey][0].message;
+        } else if (typeof data[firstKey] === 'string') {
+          msg = data[firstKey];
+        }
+      } else if (data.message) {
+        msg = data.message;
+      }
     } else {
       try {
         msg = JSON.stringify(err);
       } catch (e) { }
     }
-    ElMessage.error(msg);
-    console.error('详细错误信息:', err);
   } finally {
     editLoading.value = false
   }

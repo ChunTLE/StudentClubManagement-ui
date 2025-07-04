@@ -3,11 +3,8 @@
     <el-card>
       <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
         <span style="font-size: 20px; font-weight: bold;">部门列表</span>
-        <el-button
-          v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'"
-          type="primary"
-          @click="openCreateDialog"
-        >新建部门</el-button>
+        <el-button v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'" type="primary"
+          @click="openCreateDialog">新建部门</el-button>
       </div>
       <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
         <el-input v-model="searchName" placeholder="输入部门名称" style="width: 200px;" />
@@ -25,25 +22,23 @@
             {{ formatDate(scope.row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER' || userStore.role === 'MEMBER'" width="200">
+        <el-table-column label="操作"
+          v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER' || userStore.role === 'MEMBER'" width="200">
           <template #default="scope">
             <div class="action-btns-horizontal">
-              <el-button v-if ="userStore.role === 'ADMIN' || userStore.role === 'LEADER'" size="small" @click="openEditDialog(scope.row)">修改</el-button>
-              <el-button v-if="userStore.role === 'ADMIN'" size="small" type="danger" @click="confirmDeleteDepartment(scope.row)">删除</el-button>
-              <el-button v-if ="userStore.role === 'MEMBER'" size="small" type="primary" @click="handleJoinDepartment(scope.row)">报名</el-button>
+              <el-button v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'" size="small"
+                @click="openEditDialog(scope.row)">修改</el-button>
+              <el-button v-if="userStore.role === 'ADMIN'" size="small" type="danger"
+                @click="confirmDeleteDepartment(scope.row)">删除</el-button>
+              <el-button v-if="userStore.role === 'MEMBER'" size="small" type="primary"
+                @click="handleJoinDepartment(scope.row)">报名</el-button>
             </div>
           </template>
         </el-table-column>
       </el-table>
       <div class="table-pagination-wrapper">
-        <el-pagination
-          background
-          layout="total, prev, pager, next, jumper"
-          :total="total"
-          :page-size="pageSize"
-          :current-page="currentPage"
-          @current-change="handlePageChange"
-        />
+        <el-pagination background layout="total, prev, pager, next, jumper" :total="total" :page-size="pageSize"
+          :current-page="currentPage" @current-change="handlePageChange" />
       </div>
     </el-card>
     <el-dialog v-model="showCreateDialog" title="新建部门" width="400px">
@@ -56,12 +51,7 @@
         </el-form-item>
         <el-form-item label="所属社团">
           <el-select v-model="createForm.clubId" placeholder="请选择所属社团" style="width: 100%">
-            <el-option
-              v-for="club in clubs"
-              :key="club.id"
-              :label="club.name"
-              :value="club.id"
-            />
+            <el-option v-for="club in clubs" :key="club.id" :label="club.name" :value="club.id" />
           </el-select>
         </el-form-item>
       </el-form>
@@ -80,12 +70,7 @@
         </el-form-item>
         <el-form-item label="所属社团">
           <el-select v-model="editForm.clubId" placeholder="请选择所属社团" style="width: 100%">
-            <el-option
-              v-for="club in clubs"
-              :key="club.id"
-              :label="club.name"
-              :value="club.id"
-            />
+            <el-option v-for="club in clubs" :key="club.id" :label="club.name" :value="club.id" />
           </el-select>
         </el-form-item>
       </el-form>
@@ -153,7 +138,7 @@ const editForm = ref({
 })
 const editLoading = ref(false)
 const showDeleteDialog = ref(false)
-const deleteDepartmentId = ref<number|null>(null)
+const deleteDepartmentId = ref<number | null>(null)
 const deleteDepartmentName = ref('')
 const deleteLoading = ref(false)
 
@@ -243,13 +228,13 @@ async function handleDeleteDepartment() {
 async function handleJoinDepartment(row: any) {
   try {
     await http.post('/memberships/join', null, {
-    params: {
-      userId: userStore.userId,
-      clubId: row.clubId,
-      departmentId: row.id,
-      position: '成员'
-    }
-  })
+      params: {
+        userId: userStore.userId,
+        clubId: row.clubId,
+        departmentId: row.id,
+        position: '成员'
+      }
+    })
     ElMessage.success('报名成功！')
     fetchDepartments()
   } catch (e: any) {
@@ -276,6 +261,7 @@ onMounted(() => {
   max-width: 900px;
   margin: 40px auto;
 }
+
 .table-pagination-wrapper {
   width: 100%;
   display: flex;
@@ -284,6 +270,7 @@ onMounted(() => {
   margin-top: 16px;
   margin-bottom: 0;
 }
+
 .action-btns-horizontal {
   display: flex;
   flex-direction: row;
