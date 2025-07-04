@@ -85,12 +85,10 @@ async function fetchAll() {
     loading.value = true
     try {
         const [enrollRes, userRes, activityRes] = await Promise.all([
-            http.get('/enrollments', {
+            http.get('/enrollments/search', {
                 params: {
-                    pageNum: currentPage.value,
-                    pageSize: pageSize.value,
-                    username: searchUsername.value,
-                    activityTitle: searchActivityName.value
+                    username: searchUsername.value || undefined,
+                    activityTitle: searchActivityName.value || undefined
                 }
             }),
             http.get('/users'),
@@ -101,19 +99,19 @@ async function fetchAll() {
         total.value = enrollRes.data.total || 0
         users.value = userRes.data || []
         activities.value = activityRes.data.records || []
-        const allData = enrollRes.data.list || []
+        const allData = enrollRes.data || []
         total.value = allData.length
         const start = (currentPage.value - 1) * pageSize.value
         const end = start + pageSize.value
         enrollments.value = allData.slice(start, end).map((e: any) => {
-        const user = users.value.find((u: any) => u.id === e.userId)
-        const activity = activities.value.find((a: any) => a.id === e.activityId)
-    return {
-        ...e,
-        username: user ? (user.realName || user.username) : e.userId,
-        activityTitle: activity ? activity.title : e.activityId
-    }
-})
+            const user = users.value.find((u: any) => u.id === e.userId)
+            const activity = activities.value.find((a: any) => a.id === e.activityId)
+            return {
+                ...e,
+                username: user ? (user.realName || user.username) : e.userId,
+                activityTitle: activity ? activity.title : e.activityId
+            }
+        })
         console.log('当前页', currentPage.value)
         console.log('enrollRes.data.list', enrollRes.data.list)
         console.log('enrollRes.data.total', enrollRes.data.total)
@@ -123,8 +121,43 @@ async function fetchAll() {
 }
 
 function handleSearch() {
+    // 直接用输入内容作为 realName 查询
+    let realNameQuery = searchUsername.value
     currentPage.value = 1
-    fetchAll()
+    fetchAllWithRealName(realNameQuery)
+}
+
+async function fetchAllWithRealName(realNameQuery) {
+    loading.value = true
+    try {
+        const [enrollRes, userRes, activityRes] = await Promise.all([
+            http.get('/enrollments/search', {
+                params: {
+                    realName: realNameQuery || undefined,
+                    title: searchActivityName.value || undefined
+                }
+            }),
+            http.get('/users'),
+            http.get('/activities')
+        ])
+        users.value = userRes.data || []
+        activities.value = activityRes.data.records || []
+        const allData = enrollRes.data || []
+        total.value = allData.length
+        const start = (currentPage.value - 1) * pageSize.value
+        const end = start + pageSize.value
+        enrollments.value = allData.slice(start, end).map((e: any) => {
+            const user = users.value.find((u: any) => u.id === e.userId)
+            const activity = activities.value.find((a: any) => a.id === e.activityId)
+            return {
+                ...e,
+                username: user ? (user.realName || user.username) : e.userId,
+                activityTitle: activity ? activity.title : e.activityId
+            }
+        })
+    } finally {
+        loading.value = false
+    }
 }
 
 function resetSearch() {
@@ -140,7 +173,12 @@ function handlePageChange(page: number) {
 }
 
 async function handleDelete(row: any) {
-    await http.delete(`/enrollments/${row.id}`)
+    await http.delete(`/enrollments/delete`,{
+        params:{
+            activityId: row.activityId,
+            userId: row.userId
+        }
+    })
     fetchAll()
 }
 

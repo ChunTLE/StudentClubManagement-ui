@@ -388,8 +388,15 @@ onMounted(() => {
 
 <style scoped>
 .activity-list-container {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 40px auto;
+  font-size: 18px;
+}
+.el-card {
+  font-size: 18px;
+}
+.el-table th, .el-table td {
+  font-size: 18px;
 }
 .table-pagination-wrapper {
   width: 100%;
