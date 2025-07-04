@@ -60,6 +60,11 @@ const router = createRouter({
       name: 'PieChartView',
       component: () => import('../views/PieChartView.vue')
     },
+    {
+      path: '/register',
+      name: 'Register',
+      component: () => import('../views/Register.vue')
+    },
   ],
 })
 

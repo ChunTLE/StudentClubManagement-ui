@@ -21,6 +21,20 @@
         </el-select>
         <el-button type="primary" @click="handleSearch">查询</el-button>
         <el-button @click="resetSearch">重置</el-button>
+        <el-button
+          v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'"
+          type="success"
+          @click="exportUsers"
+        >导出数据</el-button>
+        <el-upload
+          v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'"
+          :show-file-list="false"
+          :before-upload="beforeImport"
+          :http-request="handleImport"
+          accept=".xlsx,.xls"
+        >
+          <el-button type="primary">导入数据</el-button>
+        </el-upload>
       </div>
 
       <div class="table-with-pagination">
@@ -363,6 +377,52 @@ watch(() => editForm.value.clubId, (newClubId) => {
   }
   editForm.value.departmentId = null // 切换社团时清空部门选择
 })
+
+async function exportUsers() {
+  try {
+    const res = await http.get('/users/export', {
+      responseType: 'blob'
+    })
+    const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', '用户数据.xlsx')
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    ElMessage.error('导出失败')
+  }
+}
+
+function beforeImport(file: File) {
+  const isExcel = file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.type === 'application/vnd.ms-excel'
+  if (!isExcel) {
+    ElMessage.error('只能上传 Excel 文件')
+    return false
+  }
+  if (file.size / 1024 / 1024 > 5) {
+    ElMessage.error('文件大小不能超过 5MB')
+    return false
+  }
+  return true
+}
+
+async function handleImport(option: any) {
+  const formData = new FormData()
+  formData.append('file', option.file)
+  try {
+    const res = await http.post('/users/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    ElMessage.success(res.data?.message || '导入成功')
+    fetchMemberships()
+  } catch (error) {
+    ElMessage.error('导入失败')
+  }
+}
 
 onMounted(() => {
   fetchMemberships()

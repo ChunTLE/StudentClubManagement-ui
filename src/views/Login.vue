@@ -12,6 +12,7 @@
             </div>
             <button type="submit">登录</button>
         </form>
+        <button type="button" @click="goRegister" class="register-btn">注册</button>
     </div>
 </template>
 
@@ -21,6 +22,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { LOGIN_API } from '../config/index'
 import http from '../config/http'
+import { ElMessage } from 'element-plus'
 
 const username = ref('')
 const password = ref('')
@@ -46,6 +48,10 @@ async function handleLogin() {
     } catch (err) {
         // 错误提示已由http拦截器处理
     }
+}
+
+function goRegister() {
+  router.push('/register')
 }
 </script>
 
@@ -97,5 +103,21 @@ button[type="submit"] {
 
 button[type="submit"]:hover {
     background: #1976d2;
+}
+
+.register-btn {
+  width: 100%;
+  margin-top: 1rem;
+  background: #67c23a;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.7rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.register-btn:hover {
+  background: #43a047;
 }
 </style>

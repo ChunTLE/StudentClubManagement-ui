@@ -12,6 +12,7 @@
       <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
         <el-input v-model="searchTitle" placeholder="输入活动名称" style="width: 200px;" />
         <el-button type="primary" @click="handleSearchActivity">查询活动</el-button>
+        <el-button v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'" @click="exportActivities" type="success">导出数据</el-button>
       </div>
       <el-table :data="activities" style="width: 100%" v-loading="loading" border>
         <el-table-column prop="title" label="活动名称" />
@@ -318,6 +319,39 @@ async function handleEnroll(row: any) {
   }
 }
 
+async function exportActivities() {
+  try {
+    const res = await http.get('/activities/export', { responseType: 'blob' })
+    const blob = res.data; // 直接用 data
+    console.log('准备下载', blob);
+
+    if (blob.type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+      const text = await blob.text();
+      console.error('导出失败，服务器返回：', text);
+      ElMessage.error('导出失败，服务器返回错误信息');
+      return;
+    }
+
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = '活动数据.xlsx'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    console.log('已触发下载')
+  } catch (e) {
+    if (e instanceof Blob) {
+      const text = await e.text();
+      console.error('导出异常，服务器返回：', text);
+      ElMessage.error("导出失败：" + text.slice(0, 100));
+    } else {
+      console.error('导出异常', e);
+      ElMessage.error("导出失败");
+    }
+  }
+}
 onMounted(() => {
   fetchActivities()
   fetchClubs()

@@ -28,6 +28,10 @@ http.interceptors.request.use(
 
 http.interceptors.response.use(
     result => {
+        if (result.config.responseType === 'blob') {
+            return result;
+        }
+
         if (result.data.code === 0) {
             return result.data
         }
