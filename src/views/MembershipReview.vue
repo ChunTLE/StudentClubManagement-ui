@@ -115,11 +115,23 @@ function handlePageChange(page: number) {
 
 async function handleApprove(row: any) {
     await http.put(`/memberships/${row.id}`, { status: 'APPROVED' })
+    await sendMessageToUser(row.userId, `您加入社团“${clubMap.value[String(row.clubId)] || row.clubId}”的申请已通过审核！`)
     fetchAll()
 }
+
 async function handleReject(row: any) {
     await http.put(`/memberships/${row.id}`, { status: 'REJECTED' })
+    await sendMessageToUser(row.userId, `您加入社团“${clubMap.value[String(row.clubId)] || row.clubId}”的申请未通过审核。`)
     fetchAll()
+}
+
+async function sendMessageToUser(userId: number, content: string) {
+    await http.post('/message/send', {
+        userId,
+        title: '系统通知',
+        content,
+        type: '系统'
+    })
 }
 
 onMounted(() => {

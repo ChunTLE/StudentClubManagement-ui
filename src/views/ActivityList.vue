@@ -306,15 +306,26 @@ async function handleDeleteActivity() {
   }
 }
 
+async function sendMessageToUser(userId: number, activityTitle: string) {
+  await http.post('/message/send', {
+    userId,
+    title: '系统通知',
+    content: `您已成功报名活动：${activityTitle}`,
+    type: '系统'
+  })
+}
+
 async function handleEnroll(row: any) {
   try {
     await http.post('/enrollments', {
       userId: userStore.userId,
       activityId: row.id
     })
-    ElMessage.success('报名成功！')
+    // 报名成功后发送消息
+    await sendMessageToUser(userStore.userId, row.title)
+    ElMessage.success('报名成功，已发送通知！')
   } catch (e: any) {
-
+    // 可以根据需要补充错误提示
   }
 }
 

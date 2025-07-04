@@ -33,9 +33,9 @@
         <el-dialog v-model="showMessageDialog" title="消息中心" width="400px">
             <el-table :data="messages" v-loading="loadingMessages" style="width: 100%">
                 <el-table-column prop="content" label="内容" />
-                <el-table-column prop="createdAt" label="时间">
+                <el-table-column prop="createTime" label="时间">
                     <template #default="scope">
-                        {{ scope.row.createdAt ? scope.row.createdAt.replace('T', ' ').slice(0, 16) : '' }}
+                        {{ scope.row.createTime ? dayjs(scope.row.createTime).format('YYYY-MM-DD HH:mm:ss') : '' }}
                     </template>
                 </el-table-column>
             </el-table>
@@ -54,6 +54,7 @@ import { ArrowDown } from '@element-plus/icons-vue'
 import { ElAvatar } from 'element-plus'
 import defaultAvatar from '../assets/default-avatar.png'
 import http from '../config/http'
+import dayjs from 'dayjs'
 
 const router = useRouter()
 const route = useRoute()
