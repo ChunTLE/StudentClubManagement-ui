@@ -12,7 +12,6 @@
             <el-menu-item index="/membership-review" v-if="userStore.role !== 'MEMBER'">加入社团审核</el-menu-item>
             <el-menu-item index="/users" v-if="userStore.role !== 'MEMBER'">用户信息管理</el-menu-item>
         </el-menu>
-
         <div class="user-info">
             <el-dropdown @command="handleCommand">
                 <span class="user-dropdown">
@@ -27,17 +26,36 @@
                     </el-dropdown-menu>
                 </template>
             </el-dropdown>
+            <el-icon style="margin-left: 16px; cursor: pointer; color: #409eff;" @click="onBellClick">
+                <bell />
+            </el-icon>
         </div>
+
+        <el-dialog v-model="showMessageDialog" title="消息中心" width="400px">
+            <el-table :data="messages" v-loading="loadingMessages" style="width: 100%">
+                <el-table-column prop="content" label="内容" />
+                <el-table-column prop="createTime" label="时间">
+                    <template #default="scope">
+                        {{ scope.row.createTime ? dayjs(scope.row.createTime).format('YYYY-MM-DD HH:mm:ss') : '' }}
+                    </template>
+                </el-table-column>
+            </el-table>
+            <template #footer>
+                <el-button @click="showMessageDialog = false">关闭</el-button>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
-import { computed, watch } from 'vue'
+import { computed, watch, ref } from 'vue'
 import { useUserStore } from '../stores/user'
-import { ArrowDown } from '@element-plus/icons-vue'
+import { ArrowDown, Bell } from '@element-plus/icons-vue'
 import { ElAvatar } from 'element-plus'
 import defaultAvatar from '../assets/default-avatar.png'
+import http from '../config/http'
+import dayjs from 'dayjs'
 
 const router = useRouter()
 const route = useRoute()
@@ -54,16 +72,38 @@ const activeMenu = computed(() => {
     return '/'
 })
 
+const showMessageDialog = ref(false)
+const messages = ref<any[]>([])
+const loadingMessages = ref(false)
+
+async function fetchMessages() {
+    loadingMessages.value = true
+    try {
+        const res = await http.get('/message/list')
+        const arr = res.data?.records
+        messages.value = Array.isArray(arr) ? arr : []
+    } catch (e) {
+        messages.value = []
+    } finally {
+        loadingMessages.value = false
+    }
+}
+
 function onSelect(index: string) {
     router.push(index)
 }
 
+function onBellClick() {
+    showMessageDialog.value = true
+    fetchMessages()
+}
+
 function handleCommand(command: string) {
-    if (command === 'logout') {
+    if (command === 'profile') {
+        router.push('/user-profile')
+    } else if (command === 'logout') {
         userStore.$reset()
         router.push('/login')
-    } else if (command === 'profile') {
-        router.push('/user-profile')
     }
 }
 </script>

@@ -12,6 +12,9 @@
         <el-form-item label="职位">
           <el-input v-model="form.position" disabled />
         </el-form-item>
+        <el-form-item label="邮箱">
+          <el-input v-model="form.email" disabled />
+        </el-form-item>
         <el-form-item label="密码">
           <el-input v-model="form.password" type="password" show-password disabled />
         </el-form-item>
@@ -50,9 +53,10 @@ const userStore = useUserStore()
 const loading = ref(false)
 
 const form = ref({
-  username: userStore.username,
-  realName: userStore.realName,
-  position: getRoleName(userStore.role),
+  username: '',
+  realName: '',
+  position: '',
+  email: '',
   password: '********',
   newPassword: '',
   confirmPassword: ''
@@ -76,6 +80,20 @@ function getRoleName(role: string) {
       return '干事';
     default:
       return '未知';
+  }
+}
+
+async function fetchUserInfo() {
+  try {
+    const res = await http.get('/users/me')
+    const data = res.data || {}
+    form.value.username = data.username || ''
+    form.value.realName = data.realName || ''
+    form.value.position = getRoleName(data.role)
+    form.value.email = data.email || ''
+    if (data.id) userStore.userId = data.id
+  } catch (e: any) {
+    ElMessage.error(e?.message || '获取个人信息失败')
   }
 }
 
@@ -115,6 +133,7 @@ async function handleChangePassword() {
 }
 
 onMounted(() => {
+  fetchUserInfo()
   fetchEnrolledActivities()
 })
 </script>

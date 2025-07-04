@@ -38,7 +38,8 @@
             <div class="action-btns-horizontal">
               <el-button size="small" v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'" @click="openEditDialog(scope.row)">修改</el-button>
               <el-button v-if="userStore.role === 'ADMIN'" size="small" type="danger" @click="confirmDeleteActivity(scope.row)">删除</el-button>
-              <el-button v-if="userStore.role === 'MEMBER'" size="small" type="primary" @click="handleEnroll(scope.row)">报名</el-button>
+              <el-button v-if="userStore.role === 'MEMBER' && !enrolledActivityIds.has(scope.row.id)" size="small" type="primary" @click="handleEnroll(scope.row)">报名</el-button>
+              <el-button v-if="userStore.role === 'MEMBER' && enrolledActivityIds.has(scope.row.id)" size="small" type="success" disabled>已报名</el-button>
             </div>
           </template>
         </el-table-column>
@@ -178,6 +179,7 @@ const showDeleteDialog = ref(false)
 const deleteActivityId = ref<number|null>(null)
 const deleteActivityTitle = ref('')
 const deleteLoading = ref(false)
+const enrolledActivityIds = ref<Set<number>>(new Set())
 
 const createForm = ref({
   title: '',
@@ -307,15 +309,40 @@ async function handleDeleteActivity() {
   }
 }
 
+async function sendMessageToUser(userId: number, activityTitle: string) {
+  await http.post('/message/send', {
+    userId,
+    title: '系统通知',
+    content: `您已成功报名活动：${activityTitle}`,
+    type: '系统'
+  })
+}
+
+async function fetchEnrolledActivities() {
+  if (!userStore.userId) return
+  try {
+    const res = await http.get(`/activities/user/${userStore.userId}`)
+    // 假设返回数组为活动对象或id数组
+    const ids = Array.isArray(res.data) ? res.data.map((a: any) => Number(a.id || a)) : []
+    enrolledActivityIds.value = new Set(ids)
+  } catch (e) {
+    enrolledActivityIds.value = new Set()
+  }
+}
+
 async function handleEnroll(row: any) {
   try {
     await http.post('/enrollments', {
       userId: userStore.userId,
       activityId: row.id
     })
-    ElMessage.success('报名成功！')
+    // 报名成功后发送消息
+    await sendMessageToUser(userStore.userId, row.title)
+    ElMessage.success('报名成功，已发送通知！')
+    // 报名成功后，更新已报名活动id列表
+    enrolledActivityIds.value.add(row.id)
   } catch (e: any) {
-
+    // 可以根据需要补充错误提示
   }
 }
 
@@ -355,6 +382,7 @@ async function exportActivities() {
 onMounted(() => {
   fetchActivities()
   fetchClubs()
+  fetchEnrolledActivities()
 })
 </script>
 

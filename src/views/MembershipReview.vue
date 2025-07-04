@@ -34,7 +34,7 @@
                 </el-table-column>
             </el-table>
             <div style="margin-top: 16px; display: flex; justify-content: center;">
-                <el-pagination background layout="total, prev, pager, next, jumper" :total="total" :page-size="pageSize"
+                <el-pagination background layout="total, prev, pager, next, jumper" :total="total-1" :page-size="pageSize"
                     :current-page="currentPage" @current-change="handlePageChange" />
             </div>
         </el-card>
@@ -78,17 +78,32 @@ function formatDate(dateStr: string) {
     return dateStr.replace('T', ' ').slice(0, 16)
 }
 
+// 获取当前用户信息
+let role = ''
+let userId: number | null = null
+try {
+    const userStr = localStorage.getItem('user')
+    if (userStr) {
+        const userObj = JSON.parse(userStr)
+        role = userObj.role || ''
+        userId = userObj.userId || null
+    }
+} catch (e) { }
+
 async function fetchAll() {
     loading.value = true
     try {
+        const params: any = {
+            pageNum: currentPage.value,
+            pageSize: pageSize.value,
+            status: 'PENDING'
+        }
+        // 如果是LEADER，只查自己社团
+        if (role === 'LEADER' && userId) {
+            params.clubId = userId
+        }
         const [memRes, userRes, clubRes, deptRes] = await Promise.all([
-            http.get('/memberships', {
-                params: {
-                    pageNum: currentPage.value,
-                    pageSize: pageSize.value,
-                    status: 'PENDING'
-                }
-            }),
+            http.get('/memberships', { params }),
             http.get('/users'),
             http.get('/clubs', {
                 params: {
@@ -99,7 +114,22 @@ async function fetchAll() {
             http.get('/departments')
         ])
         memberships.value = memRes.data.list || []
-        total.value = memRes.data.total || 0
+        // 调试日志，检查clubId和role
+        console.log('当前用户role:', role)
+        console.log('当前用户userId:', userId)
+        console.log('原始数据clubId类型:', memberships.value.map(m => [m.clubId, typeof m.clubId]))
+        // 前端过滤：如果是LEADER，只显示自己负责社团的审核信息
+        if (role && role.toUpperCase() === 'LEADER' && userId) {
+            // 找到当前负责人负责的所有社团ID（可能有多个）
+            const myClubIds = memberships.value
+                .filter(m => m.userId === userId)
+                .map(m => m.clubId)
+            memberships.value = memberships.value.filter(
+                m => myClubIds.includes(m.clubId)
+            )
+        }
+        console.log('筛选后：', memberships.value)
+        total.value = memberships.value.length
         users.value = userRes.data || []
         clubs.value = clubRes.data.data?.list || clubRes.data.list || []
         departments.value = deptRes.data.records || []
@@ -115,11 +145,23 @@ function handlePageChange(page: number) {
 
 async function handleApprove(row: any) {
     await http.put(`/memberships/${row.id}`, { status: 'APPROVED' })
+    await sendMessageToUser(row.userId, `您加入社团“${clubMap.value[String(row.clubId)] || row.clubId}”的申请已通过审核！`)
     fetchAll()
 }
+
 async function handleReject(row: any) {
     await http.put(`/memberships/${row.id}`, { status: 'REJECTED' })
+    await sendMessageToUser(row.userId, `您加入社团“${clubMap.value[String(row.clubId)] || row.clubId}”的申请未通过审核。`)
     fetchAll()
+}
+
+async function sendMessageToUser(userId: number, content: string) {
+    await http.post('/message/send', {
+        userId,
+        title: '系统通知',
+        content,
+        type: '系统'
+    })
 }
 
 onMounted(() => {
