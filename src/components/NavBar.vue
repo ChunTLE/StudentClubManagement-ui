@@ -23,21 +23,37 @@
                 <template #dropdown>
                     <el-dropdown-menu>
                         <el-dropdown-item command="profile">个人信息</el-dropdown-item>
+                        <el-dropdown-item command="messages">消息中心</el-dropdown-item>
                         <el-dropdown-item command="logout">退出登录</el-dropdown-item>
                     </el-dropdown-menu>
                 </template>
             </el-dropdown>
         </div>
+
+        <el-dialog v-model="showMessageDialog" title="消息中心" width="400px">
+            <el-table :data="messages" v-loading="loadingMessages" style="width: 100%">
+                <el-table-column prop="content" label="内容" />
+                <el-table-column prop="createdAt" label="时间">
+                    <template #default="scope">
+                        {{ scope.row.createdAt ? scope.row.createdAt.replace('T', ' ').slice(0, 16) : '' }}
+                    </template>
+                </el-table-column>
+            </el-table>
+            <template #footer>
+                <el-button @click="showMessageDialog = false">关闭</el-button>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
-import { computed, watch } from 'vue'
+import { computed, watch, ref } from 'vue'
 import { useUserStore } from '../stores/user'
 import { ArrowDown } from '@element-plus/icons-vue'
 import { ElAvatar } from 'element-plus'
 import defaultAvatar from '../assets/default-avatar.png'
+import http from '../config/http'
 
 const router = useRouter()
 const route = useRoute()
@@ -54,16 +70,36 @@ const activeMenu = computed(() => {
     return '/'
 })
 
+const showMessageDialog = ref(false)
+const messages = ref<any[]>([])
+const loadingMessages = ref(false)
+
+async function fetchMessages() {
+    loadingMessages.value = true
+    try {
+        const res = await http.get('/message/list')
+        const arr = res.data?.records
+        messages.value = Array.isArray(arr) ? arr : []
+    } catch (e) {
+        messages.value = []
+    } finally {
+        loadingMessages.value = false
+    }
+}
+
 function onSelect(index: string) {
     router.push(index)
 }
 
 function handleCommand(command: string) {
-    if (command === 'logout') {
-        userStore.$reset()
-        router.push('/login')
+    if (command === 'messages') {
+        showMessageDialog.value = true
+        fetchMessages()
     } else if (command === 'profile') {
         router.push('/user-profile')
+    } else if (command === 'logout') {
+        userStore.$reset()
+        router.push('/login')
     }
 }
 </script>
