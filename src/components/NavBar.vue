@@ -12,7 +12,6 @@
             <el-menu-item index="/membership-review" v-if="userStore.role !== 'MEMBER'">加入社团审核</el-menu-item>
             <el-menu-item index="/users" v-if="userStore.role !== 'MEMBER'">用户信息管理</el-menu-item>
         </el-menu>
-
         <div class="user-info">
             <el-dropdown @command="handleCommand">
                 <span class="user-dropdown">
@@ -23,11 +22,13 @@
                 <template #dropdown>
                     <el-dropdown-menu>
                         <el-dropdown-item command="profile">个人信息</el-dropdown-item>
-                        <el-dropdown-item command="messages">消息中心</el-dropdown-item>
                         <el-dropdown-item command="logout">退出登录</el-dropdown-item>
                     </el-dropdown-menu>
                 </template>
             </el-dropdown>
+            <el-icon style="margin-left: 16px; cursor: pointer; color: #409eff;" @click="onBellClick">
+                <bell />
+            </el-icon>
         </div>
 
         <el-dialog v-model="showMessageDialog" title="消息中心" width="400px">
@@ -50,7 +51,7 @@
 import { useRouter, useRoute } from 'vue-router'
 import { computed, watch, ref } from 'vue'
 import { useUserStore } from '../stores/user'
-import { ArrowDown } from '@element-plus/icons-vue'
+import { ArrowDown, Bell } from '@element-plus/icons-vue'
 import { ElAvatar } from 'element-plus'
 import defaultAvatar from '../assets/default-avatar.png'
 import http from '../config/http'
@@ -92,11 +93,13 @@ function onSelect(index: string) {
     router.push(index)
 }
 
+function onBellClick() {
+    showMessageDialog.value = true
+    fetchMessages()
+}
+
 function handleCommand(command: string) {
-    if (command === 'messages') {
-        showMessageDialog.value = true
-        fetchMessages()
-    } else if (command === 'profile') {
+    if (command === 'profile') {
         router.push('/user-profile')
     } else if (command === 'logout') {
         userStore.$reset()
