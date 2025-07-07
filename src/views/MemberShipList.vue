@@ -416,18 +416,47 @@ watch(() => editForm.value.clubId, (newClubId) => {
 
 async function exportUsers() {
   try {
+    // 构建查询参数，仅包含角色和状态筛选条件
+    const params: any = {}
+    
+    if (searchRole.value) {
+      params.role = searchRole.value
+    }
+    if (searchStatus.value !== null) {
+      params.status = searchStatus.value
+    }
+    
     const res = await http.get('/users/export', {
-      responseType: 'blob'
+      responseType: 'blob',
+      params: params
     })
     const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.setAttribute('download', '用户数据.xlsx')
+    
+    // 根据筛选条件生成文件名
+    let fileName = '用户数据'
+    if (searchRole.value) {
+      const roleNames: Record<string, string> = {
+        'MEMBER': '干事',
+        'LEADER': '社团负责人', 
+        'ADMIN': '管理员'
+      }
+      fileName += `_${roleNames[searchRole.value] || searchRole.value}`
+    }
+    if (searchStatus.value !== null) {
+      fileName += `_${searchStatus.value === 1 ? '正常' : '封禁'}`
+    }
+    fileName += '.xlsx'
+    
+    link.setAttribute('download', fileName)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
+    
+    ElMessage.success('导出成功')
   } catch (error) {
     ElMessage.error('导出失败')
   }
