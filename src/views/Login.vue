@@ -10,6 +10,13 @@
                 <label for="password">密码</label>
                 <input id="password" v-model="password" type="password" required />
             </div>
+            <div class="form-group captcha-group">
+                <label for="captcha">验证码</label>
+                <div class="captcha-row">
+                    <input id="captcha" v-model="captchaCode" type="text" required />
+                    <img :src="captchaImg" alt="验证码" @click="fetchCaptcha" class="captcha-img" />
+                </div>
+            </div>
             <button type="submit">登录</button>
         </form>
         <button type="button" @click="goRegister" class="register-btn">注册</button>
@@ -17,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { LOGIN_API } from '../config/index'
@@ -26,14 +33,34 @@ import { ElMessage } from 'element-plus'
 
 const username = ref('')
 const password = ref('')
+const captchaImg = ref('')
+const captchaId = ref('')
+const captchaCode = ref('')
 const router = useRouter()
 const userStore = useUserStore()
+
+async function fetchCaptcha() {
+    const res = await http.get('/auth/captcha')
+    let img = res.data.captchaImage
+    // 去除重复的前缀，只保留一个
+    if (img.startsWith('data:image/png;base64,data:image/png;base64,')) {
+        img = img.replace('data:image/png;base64,data:image/png;base64,', 'data:image/png;base64,')
+    }
+    captchaImg.value = img
+    captchaId.value = res.data.captchaId
+}
+
+onMounted(() => {
+    fetchCaptcha()
+})
 
 async function handleLogin() {
     try {
         const res = await http.post(LOGIN_API, {
             username: username.value,
-            password: password.value
+            password: password.value,
+            captcha: captchaCode.value,
+            captchaId: captchaId.value
         })
         // 解析后端返回的data字段
         const userData = res.data
@@ -50,6 +77,8 @@ async function handleLogin() {
 
     } catch (err) {
         // 错误提示已由http拦截器处理
+        fetchCaptcha(); // 自动刷新验证码
+        captchaCode.value = '' // 清空验证码输入框
     }
 }
 
@@ -123,5 +152,18 @@ button[type="submit"]:hover {
 
 .register-btn:hover {
     background: #43a047;
+}
+
+.captcha-group .captcha-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.captcha-img {
+    height: 38px;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid #ccc;
 }
 </style>
