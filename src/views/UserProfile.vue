@@ -15,6 +15,19 @@
         <el-form-item label="邮箱">
           <el-input v-model="form.email" disabled />
         </el-form-item>
+        <el-form-item label="头像">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <el-avatar :src="avatarUrl" size="large" />
+            <el-upload
+              :show-file-list="false"
+              :before-upload="beforeAvatarUpload"
+              :http-request="handleAvatarUpload"
+              accept="image/*"
+            >
+              <el-button :loading="avatarLoading">本地上传</el-button>
+            </el-upload>
+          </div>
+        </el-form-item>
         <el-form-item label="密码">
           <el-input v-model="form.password" type="password" show-password disabled />
         </el-form-item>
@@ -48,9 +61,11 @@ import { ref, onMounted } from 'vue'
 import http from '../config/http'
 import { useUserStore } from '../stores/user'
 import { ElMessage } from 'element-plus'
+import defaultAvatar from '../assets/default-avatar.png'
 
-const userStore = useUserStore()
+const userStore: any = useUserStore()
 const loading = ref(false)
+const avatarLoading = ref(false)
 
 const form = ref({
   username: '',
@@ -59,11 +74,13 @@ const form = ref({
   email: '',
   password: '********',
   newPassword: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  avatarUrl: ''
 })
 
 const enrolledActivities = ref<any[]>([])
 const activitiesMap = ref<Record<string, string>>({})
+const avatarUrl = ref(defaultAvatar)
 
 function formatDate(dateStr: string) {
   if (!dateStr) return ''
@@ -91,6 +108,7 @@ async function fetchUserInfo() {
     form.value.realName = data.realName || ''
     form.value.position = getRoleName(data.role)
     form.value.email = data.email || ''
+    form.value.avatarUrl = data.avatarUrl || ''
     if (data.id) userStore.userId = data.id
   } catch (e: any) {
     ElMessage.error(e?.message || '获取个人信息失败')
@@ -132,7 +150,53 @@ async function handleChangePassword() {
   }
 }
 
+function beforeAvatarUpload(file: File) {
+  const isImage = file.type.startsWith('image/')
+  if (!isImage) {
+    ElMessage.error('只能上传图片文件')
+    return false
+  }
+  if (file.size / 1024 / 1024 > 2) {
+    ElMessage.error('图片大小不能超过2MB')
+    return false
+  }
+  return true
+}
+
+async function loadAvatar() {
+  try {
+    const res = await http.get(`/users/${userStore.userId}/avatar`, { responseType: 'blob' })
+    if (res && res.data && res.data.type && res.data.type.startsWith('image/')) {
+      avatarUrl.value = URL.createObjectURL(res.data)
+    } else {
+      avatarUrl.value = defaultAvatar
+    }
+  } catch {
+    avatarUrl.value = defaultAvatar
+    // 完全静默，不弹窗、不输出任何提示
+  }
+}
+
+async function handleAvatarUpload(option: any) {
+  avatarLoading.value = true
+  const formData = new FormData()
+  formData.append('file', option.file)
+  try {
+    await http.put(`/users/${userStore.userId}/avatar`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    ElMessage.success('头像更新成功')
+    await userStore.loadAvatar() // 上传成功后全局刷新头像
+    loadAvatar() // 本地刷新
+  } catch (e: any) {
+    ElMessage.error(e?.message || '头像上传或更新失败')
+  } finally {
+    avatarLoading.value = false
+  }
+}
+
 onMounted(() => {
+  loadAvatar()
   fetchUserInfo()
   fetchEnrolledActivities()
 })

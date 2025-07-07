@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterLink, RouterView, useRoute } from 'vue-router'
-import * as NavBar from './components/NavBar.vue'
+import * as NavBar from './components/NavBar.vue'  
 import { onMounted } from 'vue'
 import { useUserStore } from './stores/user'
 import { checkTokenStatus, startTokenCheck } from './config/http'
@@ -16,6 +16,8 @@ onMounted(async () => {
     }
   }
 })
+
+
 </script>
 
 <template>
