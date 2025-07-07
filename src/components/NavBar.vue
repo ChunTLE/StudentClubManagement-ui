@@ -60,6 +60,7 @@ import dayjs from 'dayjs'
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+console.log('NavBar avatar:', userStore.avatar)
 
 const activeMenu = computed(() => {
     if (route.path.startsWith('/clubs')) return '/clubs'

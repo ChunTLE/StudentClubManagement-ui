@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { RouterLink, RouterView, useRoute } from 'vue-router'
-import * as NavBar from './components/NavBar.vue'
+import * as NavBar from './components/NavBar.vue'  
 const route = useRoute()
+
+
 </script>
 
 <template>

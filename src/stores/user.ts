@@ -1,5 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
+import http from '../config/http'
+import defaultAvatar from '../assets/default-avatar.png'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -11,13 +13,33 @@ export const useUserStore = defineStore('user', {
     avatar: ''
   }),
   actions: {
+    async loadAvatar() {
+      if (!this.userId) {
+        this.avatar = defaultAvatar
+        return
+      }
+      try {
+        const res = await http.get(`/users/${this.userId}/avatar`, {
+          responseType: 'blob',
+          headers: {
+            Authorization: this.token ? `Bearer ${this.token}` : ''
+          }
+        })
+        if (res && res.data && res.data.type && res.data.type.startsWith('image/')) {
+          this.avatar = URL.createObjectURL(res.data)
+        } else {
+          this.avatar = defaultAvatar
+        }
+      } catch {
+        this.avatar = defaultAvatar
+      }
+    },
     setUser(user: any) {
       this.userId = user.userId
       this.username = user.username
       this.realName = user.realName || ''
       this.role = user.role
       this.token = user.token
-      this.avatar = user.avatar || ''
     },
     clearUser() {
       this.userId = ''
@@ -43,13 +65,10 @@ export const useUserStore = defineStore('user', {
       this.role = role
     }
   },
-  persist: {
-    enabled: true,
-    strategies: [
-      {
-        key: 'user',
-        storage: localStorage
-      }
-    ]
-  }
+  persist: [
+    {
+      key: 'user',
+      storage: localStorage
+    }
+  ]
 }) 
