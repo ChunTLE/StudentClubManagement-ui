@@ -6,18 +6,6 @@ import { useUserStore } from './stores/user'
 import { checkTokenStatus, startTokenCheck } from './config/http'
 
 const route = useRoute()
-const userStore = useUserStore()
-
-onMounted(async () => {
-  if (userStore.token) {
-    const isValid = await checkTokenStatus()
-    if (isValid) {
-      startTokenCheck()
-    }
-  }
-})
-
-
 </script>
 
 <template>

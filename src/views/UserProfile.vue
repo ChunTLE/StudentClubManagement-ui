@@ -44,7 +44,7 @@
     </el-card>
     <el-card class="activity-list-card">
       <h3>已报名活动</h3>
-      <el-table :data="enrolledActivities" style="width: 100%; margin-top: 16px;">
+      <el-table :data="enrolledActivities" style="width: 100%; margin-top: 16px;" :stripe="true">
         <el-table-column prop="activityTitle" label="活动名称" />
         <el-table-column prop="enrolledAt" label="报名时间">
           <template #default="scope">
@@ -62,6 +62,7 @@ import http from '../config/http'
 import { useUserStore } from '../stores/user'
 import { ElMessage } from 'element-plus'
 import defaultAvatar from '../assets/default-avatar.png'
+import emitter from '../utils/eventBus'
 
 const userStore: any = useUserStore()
 const loading = ref(false)
@@ -186,7 +187,8 @@ async function handleAvatarUpload(option: any) {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
     ElMessage.success('头像更新成功')
-    await userStore.loadAvatar() // 上传成功后全局刷新头像
+    await userStore.loadAvatar() // 全局刷新头像
+    emitter.emit('avatar-updated') // 通知导航栏刷新
     loadAvatar() // 本地刷新
   } catch (e: any) {
     ElMessage.error(e?.message || '头像上传或更新失败')

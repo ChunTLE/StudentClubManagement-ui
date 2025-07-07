@@ -12,7 +12,7 @@
         <el-button v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'" @click="exportActivities"
           type="success">导出数据</el-button>
       </div>
-      <el-table :data="activities" style="width: 100%" v-loading="loading" border>
+      <el-table :data="activities" style="width: 100%" v-loading="loading" border :stripe="true">
         <el-table-column prop="title" label="活动名称" />
         <el-table-column prop="content" label="简介" width="180" />
         <el-table-column prop="location" label="地点" />
@@ -264,6 +264,13 @@ async function handleDeleteActivity() {
     await http.delete(`/activities/${deleteActivityId.value}`)
     showDeleteDialog.value = false
     fetchActivities()
+  } catch (e: any) {
+    // 判断外键约束错误
+    if (e?.message?.includes('a foreign key constraint fails')) {
+      ElMessage.error('该活动下还有报名信息，请先删除所有报名信息后再删除活动！')
+    } else {
+      ElMessage.error('删除失败')
+    }
   } finally {
     deleteLoading.value = false
   }

@@ -13,7 +13,7 @@
       </div>
       <div class="table-with-pagination">
         <div class="table-flex-grow">
-          <el-table :data="paginatedClubs" style="width: 100%" v-loading="loading" border>
+          <el-table :data="paginatedClubs" style="width: 100%" v-loading="loading" border :stripe="true">
             <el-table-column prop="name" label="社团名称" />
             <el-table-column prop="description" label="简介" />
             <el-table-column prop="leaderId" label="负责人">

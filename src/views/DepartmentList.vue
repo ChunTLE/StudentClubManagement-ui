@@ -9,7 +9,7 @@
       <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
         <el-input v-model="searchName" placeholder="输入部门名称" style="width: 200px;" />
       </div>
-      <el-table :data="paginatedDepartments" style="width: 100%" v-loading="loading" border>
+      <el-table :data="paginatedDepartments" style="width: 100%" v-loading="loading" border :stripe="true">
         <el-table-column prop="name" label="部门名称" />
         <el-table-column prop="description" label="简介" />
         <el-table-column label="所属社团">

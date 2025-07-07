@@ -23,7 +23,7 @@
       </div>
       <div class="table-with-pagination">
         <div class="table-flex-grow">
-          <el-table :data="paginatedRecords" style="width: 100%" v-loading="loading" border>
+          <el-table :data="paginatedRecords" style="width: 100%" v-loading="loading" border :stripe="true">
             <el-table-column prop="clubId" label="社团名称" width="80">
               <template #default="scope">
                 {{ clubMap[String(scope.row.clubId)] || scope.row.clubId }}

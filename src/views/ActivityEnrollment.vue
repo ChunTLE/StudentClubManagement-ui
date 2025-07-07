@@ -10,7 +10,7 @@
                 <el-button type="primary" @click="handleSearch">查询</el-button>
                 <el-button @click="resetSearch">重置</el-button>
             </div>
-            <el-table :data="enrollments" style="width: 100%" v-loading="loading" border>
+            <el-table :data="enrollments" style="width: 100%" v-loading="loading" border :stripe="true">
                 <el-table-column prop="username" label="用户名" />
                 <el-table-column prop="activityTitle" label="活动名称" />
                 <el-table-column prop="enrolledAt" label="报名时间">

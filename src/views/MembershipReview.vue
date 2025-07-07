@@ -4,7 +4,7 @@
             <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-size: 20px; font-weight: bold;">加入社团审核</span>
             </div>
-            <el-table :data="pendingMemberships" style="width: 100%" v-loading="loading" border>
+            <el-table :data="pendingMemberships" style="width: 100%" v-loading="loading" border :stripe="true">
                 <el-table-column prop="userId" label="申请人" width="60">
                     <template #default="scope">
                         {{ userMap[String(scope.row.userId)] || '' }}

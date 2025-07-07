@@ -15,7 +15,7 @@
         <div class="user-info">
             <el-dropdown @command="handleCommand">
                 <span class="user-dropdown">
-                    <el-avatar :src="userStore.avatar || defaultAvatar" size="small" style="margin-right: 8px" />
+                    <el-avatar :src="userStore.avatar || defaultAvatar" :key ="userStore.avatar" size="small" style="margin-right: 8px" />
                     {{ userStore.realName || userStore.username }}
                     <el-icon class="el-icon--right"><arrow-down /></el-icon>
                 </span>
@@ -49,13 +49,15 @@
 
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
-import { computed, watch, ref } from 'vue'
+import { computed, watch, ref, onMounted, onUnmounted } from 'vue'
 import { useUserStore } from '../stores/user'
 import { ArrowDown, Bell } from '@element-plus/icons-vue'
 import { ElAvatar } from 'element-plus'
 import defaultAvatar from '../assets/default-avatar.png'
 import http, { stopTokenCheck } from '../config/http'
 import dayjs from 'dayjs'
+import emitter from '../utils/eventBus'
+
 
 const router = useRouter()
 const route = useRoute()
@@ -109,6 +111,16 @@ function handleCommand(command: string) {
         router.push('/login')
     }
 }
+
+onMounted(() => {
+  emitter.on('avatar-updated', () => {
+    userStore.loadAvatar()
+  })
+})
+onUnmounted(() => {
+  emitter.off('avatar-updated')
+})
+
 </script>
 
 <style scoped>
@@ -122,6 +134,17 @@ function handleCommand(command: string) {
     min-height: 100vh;
     border-right: 1px solid #f0f0f0;
     font-size: 16px;
+    background: #1976d2; /* 蓝色背景 */
+    color: #fff; /* 白色文字 */
+}
+
+.nav-bar .el-menu-item {
+    color: #fff;
+}
+
+.nav-bar .el-menu-item.is-active {
+    background: #1565c0 !important; /* 深蓝高亮 */
+    color: #fff !important;
 }
 
 .user-info {
@@ -137,11 +160,11 @@ function handleCommand(command: string) {
     display: flex;
     align-items: center;
     cursor: pointer;
-    color: #409eff;
+    color: #fff;
     font-size: 14px;
 }
 
 .user-dropdown:hover {
-    color: #66b1ff;
+    color: #bbdefb;
 }
 </style>

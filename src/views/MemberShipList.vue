@@ -39,7 +39,7 @@
 
       <div class="table-with-pagination">
         <div class="table-flex-grow">
-          <el-table :data="paginatedMemberships" style="width: 100%" v-loading="loading" border>
+          <el-table :data="paginatedMemberships" style="width: 100%" v-loading="loading" border :stripe="true">
             <el-table-column prop="username" label="用户名" />
             <el-table-column prop="email" label="邮箱" />
             <el-table-column prop="realName" label="真实姓名" />

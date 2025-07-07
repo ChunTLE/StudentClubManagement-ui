@@ -1,25 +1,27 @@
 <template>
     <div class="login-container">
-        <h2>社团管理系统登录</h2>
-        <form @submit.prevent="handleLogin">
-            <div class="form-group">
-                <label for="username">用户名</label>
-                <input id="username" v-model="username" type="text" required />
-            </div>
-            <div class="form-group">
-                <label for="password">密码</label>
-                <input id="password" v-model="password" type="password" required />
-            </div>
-            <div class="form-group captcha-group">
-                <label for="captcha">验证码</label>
-                <div class="captcha-row">
-                    <input id="captcha" v-model="captchaCode" type="text" required />
-                    <img :src="captchaImg" alt="验证码" @click="fetchCaptcha" class="captcha-img" />
+        <el-card class="login-card">
+            <h2>社团管理系统登录</h2>
+            <form @submit.prevent="handleLogin">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input id="username" v-model="username" type="text" required />
                 </div>
-            </div>
-            <button type="submit">登录</button>
-        </form>
-        <button type="button" @click="goRegister" class="register-btn">注册</button>
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input id="password" v-model="password" type="password" required />
+                </div>
+                <div class="form-group captcha-group">
+                    <label for="captcha">验证码</label>
+                    <div class="captcha-row">
+                        <input id="captcha" v-model="captchaCode" type="text" required />
+                        <img :src="captchaImg" alt="验证码" @click="fetchCaptcha" class="captcha-img" />
+                    </div>
+                </div>
+                <button type="submit">登录</button>
+            </form>
+            <button type="button" @click="goRegister" class="register-btn">注册</button>
+        </el-card>
     </div>
 </template>
 
@@ -37,7 +39,7 @@ const captchaImg = ref('')
 const captchaId = ref('')
 const captchaCode = ref('')
 const router = useRouter()
-const userStore = useUserStore()
+const userStore: any = useUserStore()
 
 async function fetchCaptcha() {
     const res = await http.get('/auth/captcha')
@@ -73,6 +75,9 @@ async function handleLogin() {
         // 启动token状态检查
         startTokenCheck()
 
+        // 登录成功后拉取头像
+        await userStore.loadAvatar()
+
         router.push('/')
 
     } catch (err) {
@@ -89,12 +94,19 @@ function goRegister() {
 
 <style scoped>
 .login-container {
-    max-width: 350px;
-    margin: 80px auto;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    background: #fff;
+    min-height: 100vh;
+    min-width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: url('@/assets/login-bg.jpg') center center/cover no-repeat;
+}
+
+.login-card {
+    box-shadow: 0 4px 24px rgba(25, 118, 210, 0.15);
+    border-radius: 12px;
+    padding: 40px 32px;
+    background: rgba(255,255,255,0.95);
 }
 
 .login-container h2 {

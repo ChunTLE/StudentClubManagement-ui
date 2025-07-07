@@ -128,7 +128,12 @@ http.interceptors.response.use(
         if (result.data.code === 0) {
             return result.data
         }
-        ElMessage.error(result.data.message ? result.data.message : '服务器错误');
+        // 只对非SQL详细报错弹窗
+        const msg = result.data.message || ''
+        if (!msg.includes('SQLIntegrityConstraintViolationException') && !msg.includes('a foreign key constraint fails')) {
+            ElMessage.error(msg ? msg : '服务器错误');
+        }
+        // 否则静默
         return Promise.reject(result.data);
     },
     err => {
@@ -142,7 +147,12 @@ http.interceptors.response.use(
             }, 2000);
         }
         else {
-            ElMessage.error('服务器错误');
+            // 只对非SQL详细报错弹窗
+            const msg = err?.response?.data?.message || err.message || ''
+            if (!msg.includes('SQLIntegrityConstraintViolationException') && !msg.includes('a foreign key constraint fails')) {
+                ElMessage.error(msg ? msg : '服务器错误');
+            }
+            // 否则静默
         }
         return Promise.reject(err);
     }

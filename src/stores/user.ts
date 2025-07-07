@@ -15,6 +15,7 @@ export const useUserStore = defineStore('user', {
   actions: {
     async loadAvatar() {
       if (!this.userId) {
+        if(this.avatar && this.avatar!==defaultAvatar)URL.revokeObjectURL(this.avatar)
         this.avatar = defaultAvatar
         return
       }
@@ -26,11 +27,14 @@ export const useUserStore = defineStore('user', {
           }
         })
         if (res && res.data && res.data.type && res.data.type.startsWith('image/')) {
+          if(this.avatar && this.avatar!==defaultAvatar)URL.revokeObjectURL(this.avatar)
           this.avatar = URL.createObjectURL(res.data)
         } else {
+          if(this.avatar && this.avatar!==defaultAvatar)URL.revokeObjectURL(this.avatar)
           this.avatar = defaultAvatar
         }
       } catch {
+        if(this.avatar && this.avatar!==defaultAvatar)URL.revokeObjectURL(this.avatar)
         this.avatar = defaultAvatar
       }
     },
@@ -65,10 +69,9 @@ export const useUserStore = defineStore('user', {
       this.role = role
     }
   },
-  persist: [
-    {
-      key: 'user',
-      storage: localStorage
-    }
-  ]
+  persist: {
+    key: 'user',
+    storage: localStorage,
+    pick: ['userId', 'username', 'realName', 'role', 'token']
+  }
 }) 
