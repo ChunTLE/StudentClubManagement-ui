@@ -21,7 +21,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { LOGIN_API } from '../config/index'
-import http from '../config/http'
+import http, { startTokenCheck } from '../config/http'
 import { ElMessage } from 'element-plus'
 
 const username = ref('')
@@ -37,21 +37,24 @@ async function handleLogin() {
         })
         // 解析后端返回的data字段
         const userData = res.data
-        userStore.setToken(userData.token)
-        userStore.setUsername(userData.username)
-        userStore.setUserId(userData.userId)
-        userStore.setRealName(userData.realName)
-        userStore.setRole(userData.role)
+        userStore.token = userData.token
+        userStore.username = userData.username
+        userStore.userId = userData.userId.toString()
+        userStore.realName = userData.realName || ''
+        userStore.role = userData.role
+
+        // 启动token状态检查
+        startTokenCheck()
+
         router.push('/')
 
-        console.log(res)
     } catch (err) {
         // 错误提示已由http拦截器处理
     }
 }
 
 function goRegister() {
-  router.push('/register')
+    router.push('/register')
 }
 </script>
 
@@ -106,18 +109,19 @@ button[type="submit"]:hover {
 }
 
 .register-btn {
-  width: 100%;
-  margin-top: 1rem;
-  background: #67c23a;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 0.7rem;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.2s;
+    width: 100%;
+    margin-top: 1rem;
+    background: #67c23a;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 0.7rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
 }
+
 .register-btn:hover {
-  background: #43a047;
+    background: #43a047;
 }
 </style>

@@ -1,7 +1,21 @@
 <script setup lang="ts">
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 import * as NavBar from './components/NavBar.vue'
+import { onMounted } from 'vue'
+import { useUserStore } from './stores/user'
+import { checkTokenStatus, startTokenCheck } from './config/http'
+
 const route = useRoute()
+const userStore = useUserStore()
+
+onMounted(async () => {
+  if (userStore.token) {
+    const isValid = await checkTokenStatus()
+    if (isValid) {
+      startTokenCheck()
+    }
+  }
+})
 </script>
 
 <template>
@@ -18,6 +32,7 @@ const route = useRoute()
   display: flex;
   height: 100vh;
 }
+
 .main-content {
   flex: 1;
   padding: 24px;

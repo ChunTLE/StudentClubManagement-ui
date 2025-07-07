@@ -96,10 +96,14 @@ async function fetchAll() {
         ])
         users.value = userRes.data || []
         activities.value = activityRes.data.records || []
-        total.value = enrollRes.data.total || 0
-        users.value = userRes.data || []
-        activities.value = activityRes.data.records || []
-        const allData = enrollRes.data || []
+        let allData = []
+        if (Array.isArray(enrollRes.data)) {
+            allData = enrollRes.data
+        } else if (enrollRes.data && Array.isArray(enrollRes.data.records)) {
+            allData = enrollRes.data.records
+        } else if (enrollRes.data && Array.isArray(enrollRes.data.list)) {
+            allData = enrollRes.data.list
+        }
         total.value = allData.length
         const start = (currentPage.value - 1) * pageSize.value
         const end = start + pageSize.value
@@ -112,9 +116,6 @@ async function fetchAll() {
                 activityTitle: activity ? activity.title : e.activityId
             }
         })
-        console.log('当前页', currentPage.value)
-        console.log('enrollRes.data.list', enrollRes.data.list)
-        console.log('enrollRes.data.total', enrollRes.data.total)
     } finally {
         loading.value = false
     }
@@ -127,14 +128,15 @@ function handleSearch() {
     fetchAllWithRealName(realNameQuery)
 }
 
-async function fetchAllWithRealName(realNameQuery) {
+async function fetchAllWithRealName(realNameQuery: string) {
     loading.value = true
     try {
         const [enrollRes, userRes, activityRes] = await Promise.all([
             http.get('/enrollments/search', {
                 params: {
-                    realName: realNameQuery || undefined,
-                    title: searchActivityName.value || undefined
+                    username: realNameQuery || undefined,
+                    activityTitle: searchActivityName.value || undefined,
+                    status: 'PENDING'
                 }
             }),
             http.get('/users'),
@@ -142,7 +144,14 @@ async function fetchAllWithRealName(realNameQuery) {
         ])
         users.value = userRes.data || []
         activities.value = activityRes.data.records || []
-        const allData = enrollRes.data || []
+        let allData = []
+        if (Array.isArray(enrollRes.data)) {
+            allData = enrollRes.data
+        } else if (enrollRes.data && Array.isArray(enrollRes.data.records)) {
+            allData = enrollRes.data.records
+        } else if (enrollRes.data && Array.isArray(enrollRes.data.list)) {
+            allData = enrollRes.data.list
+        }
         total.value = allData.length
         const start = (currentPage.value - 1) * pageSize.value
         const end = start + pageSize.value
@@ -173,8 +182,8 @@ function handlePageChange(page: number) {
 }
 
 async function handleDelete(row: any) {
-    await http.delete(`/enrollments/delete`,{
-        params:{
+    await http.delete(`/enrollments/delete`, {
+        params: {
             activityId: row.activityId,
             userId: row.userId
         }
