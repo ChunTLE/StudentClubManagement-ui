@@ -34,8 +34,8 @@
                 </el-table-column>
             </el-table>
             <div style="margin-top: 16px; display: flex; justify-content: center;">
-                <el-pagination background layout="total, prev, pager, next, jumper" :total="total-1" :page-size="pageSize"
-                    :current-page="currentPage" @current-change="handlePageChange" />
+                <el-pagination background layout="total, prev, pager, next, jumper" :total="pendingMemberships.length"
+                    :page-size="pageSize" :current-page="currentPage" @current-change="handlePageChange" />
             </div>
         </el-card>
     </div>
@@ -114,10 +114,6 @@ async function fetchAll() {
             http.get('/departments')
         ])
         memberships.value = memRes.data.list || []
-        // 调试日志，检查clubId和role
-        console.log('当前用户role:', role)
-        console.log('当前用户userId:', userId)
-        console.log('原始数据clubId类型:', memberships.value.map(m => [m.clubId, typeof m.clubId]))
         // 前端过滤：如果是LEADER，只显示自己负责社团的审核信息
         if (role && role.toUpperCase() === 'LEADER' && userId) {
             // 找到当前负责人负责的所有社团ID（可能有多个）
@@ -128,7 +124,6 @@ async function fetchAll() {
                 m => myClubIds.includes(m.clubId)
             )
         }
-        console.log('筛选后：', memberships.value)
         total.value = memberships.value.length
         users.value = userRes.data || []
         clubs.value = clubRes.data.data?.list || clubRes.data.list || []
@@ -145,13 +140,13 @@ function handlePageChange(page: number) {
 
 async function handleApprove(row: any) {
     await http.put(`/memberships/${row.id}`, { status: 'APPROVED' })
-    await sendMessageToUser(row.userId, `您加入社团“${clubMap.value[String(row.clubId)] || row.clubId}”的申请已通过审核！`)
+    await sendMessageToUser(row.userId, `您加入社团"${clubMap.value[String(row.clubId)] || row.clubId}"的申请已通过审核！`)
     fetchAll()
 }
 
 async function handleReject(row: any) {
     await http.put(`/memberships/${row.id}`, { status: 'REJECTED' })
-    await sendMessageToUser(row.userId, `您加入社团“${clubMap.value[String(row.clubId)] || row.clubId}”的申请未通过审核。`)
+    await sendMessageToUser(row.userId, `您加入社团"${clubMap.value[String(row.clubId)] || row.clubId}"的申请未通过审核。`)
     fetchAll()
 }
 

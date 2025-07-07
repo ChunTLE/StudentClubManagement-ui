@@ -3,13 +3,13 @@
         <el-menu :default-active="activeMenu" mode="vertical" class="nav-bar" @select="onSelect">
             <el-menu-item index="/home">首页</el-menu-item>
             <el-menu-item index="/clubs">社团信息</el-menu-item>
+            <el-menu-item index="/membership-review" v-if="userStore.role !== 'MEMBER'">加入社团审核</el-menu-item>
             <el-menu-item index="/departments" v-if="userStore.role == 'MEMBER'">加入社团部门</el-menu-item>
-            <el-menu-item index="/finance" v-if="userStore.role !== 'MEMBER'">财政管理</el-menu-item>
             <el-menu-item index="/activities" v-if="userStore.role !== 'MEMBER'">活动管理</el-menu-item>
             <el-menu-item index="/enrollments">活动报名信息</el-menu-item>
             <el-menu-item index="/activities" v-if="userStore.role == 'MEMBER'">报名活动</el-menu-item>
             <el-menu-item index="/departments" v-if="userStore.role !== 'MEMBER'">部门管理</el-menu-item>
-            <el-menu-item index="/membership-review" v-if="userStore.role !== 'MEMBER'">加入社团审核</el-menu-item>
+            <el-menu-item index="/finance" v-if="userStore.role !== 'MEMBER'">财政管理</el-menu-item>
             <el-menu-item index="/users" v-if="userStore.role !== 'MEMBER'">用户信息管理</el-menu-item>
         </el-menu>
         <div class="user-info">
@@ -26,7 +26,7 @@
                     </el-dropdown-menu>
                 </template>
             </el-dropdown>
-            <el-icon style="margin-left: 16px; cursor: pointer; color: #409eff;" @click="onBellClick">
+            <el-icon style="margin-left: 16px; cursor: pointer; color: #409eff; font-size: 20px;" @click="onBellClick">
                 <bell />
             </el-icon>
         </div>
@@ -54,7 +54,7 @@ import { useUserStore } from '../stores/user'
 import { ArrowDown, Bell } from '@element-plus/icons-vue'
 import { ElAvatar } from 'element-plus'
 import defaultAvatar from '../assets/default-avatar.png'
-import http from '../config/http'
+import http, { stopTokenCheck } from '../config/http'
 import dayjs from 'dayjs'
 
 const router = useRouter()
@@ -102,6 +102,8 @@ function handleCommand(command: string) {
     if (command === 'profile') {
         router.push('/user-profile')
     } else if (command === 'logout') {
+        // 停止token检查
+        stopTokenCheck()
         userStore.$reset()
         router.push('/login')
     }

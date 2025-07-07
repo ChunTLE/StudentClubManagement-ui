@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import UserProfile from '../views/UserProfile.vue'
+import { checkTokenStatus } from '../config/http'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -68,11 +69,20 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore()
   const token = userStore.token
-  if (!token && to.name !== 'Login') {
+  
+  if (!token && to.name !== 'Login' && to.name !== 'Register') {
     next({ name: 'Login' })
+  } else if (token && to.name !== 'Login' && to.name !== 'Register') {
+    // 检查token是否有效
+    const isValid = await checkTokenStatus()
+    if (!isValid) {
+      next({ name: 'Login' })
+    } else {
+      next()
+    }
   } else {
     next()
   }

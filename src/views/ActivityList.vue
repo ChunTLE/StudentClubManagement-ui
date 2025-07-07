@@ -3,25 +3,23 @@
     <el-card>
       <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
         <span style="font-size: 20px; font-weight: bold;">活动列表</span>
-        <el-button
-          v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'"
-          type="primary"
-          @click="openCreateDialog"
-        >新建活动</el-button>
+        <el-button v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'" type="primary"
+          @click="openCreateDialog">新建活动</el-button>
       </div>
       <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
         <el-input v-model="searchTitle" placeholder="输入活动名称" style="width: 200px;" />
         <el-button type="primary" @click="handleSearchActivity">查询活动</el-button>
-        <el-button v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'" @click="exportActivities" type="success">导出数据</el-button>
+        <el-button v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'" @click="exportActivities"
+          type="success">导出数据</el-button>
       </div>
       <el-table :data="activities" style="width: 100%" v-loading="loading" border>
         <el-table-column prop="title" label="活动名称" />
         <el-table-column prop="content" label="简介" width="180" />
         <el-table-column prop="location" label="地点" />
         <el-table-column label="所属社团">
-           <template #default="scope">
-             {{ clubMap[scope.row.clubId] || scope.row.clubId }}
-           </template>
+          <template #default="scope">
+            {{ clubMap[scope.row.clubId] || scope.row.clubId }}
+          </template>
         </el-table-column>
         <el-table-column prop="startTime" label="开始时间" width="180">
           <template #default="scope">
@@ -36,23 +34,21 @@
         <el-table-column label="操作" width="200">
           <template #default="scope">
             <div class="action-btns-horizontal">
-              <el-button size="small" v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'" @click="openEditDialog(scope.row)">修改</el-button>
-              <el-button v-if="userStore.role === 'ADMIN'" size="small" type="danger" @click="confirmDeleteActivity(scope.row)">删除</el-button>
-              <el-button v-if="userStore.role === 'MEMBER' && !enrolledActivityIds.has(scope.row.id)" size="small" type="primary" @click="handleEnroll(scope.row)">报名</el-button>
-              <el-button v-if="userStore.role === 'MEMBER' && enrolledActivityIds.has(scope.row.id)" size="small" type="success" disabled>已报名</el-button>
+              <el-button size="small" v-if="userStore.role === 'ADMIN' || userStore.role === 'LEADER'"
+                @click="openEditDialog(scope.row)">修改</el-button>
+              <el-button v-if="userStore.role === 'ADMIN'" size="small" type="danger"
+                @click="confirmDeleteActivity(scope.row)">删除</el-button>
+              <el-button v-if="userStore.role === 'MEMBER' && !enrolledActivityIds.has(scope.row.id)" size="small"
+                type="primary" @click="handleEnroll(scope.row)">报名</el-button>
+              <el-button v-if="userStore.role === 'MEMBER' && enrolledActivityIds.has(scope.row.id)" size="small"
+                type="success" disabled>已报名</el-button>
             </div>
           </template>
         </el-table-column>
       </el-table>
       <div class="table-pagination-wrapper">
-        <el-pagination
-          background
-          layout="total, prev, pager, next, jumper"
-          :total="total"
-          :page-size="pageSize"
-          :current-page="currentPage"
-          @current-change="handlePageChange"
-        />
+        <el-pagination background layout="total, prev, pager, next, jumper" :total="total" :page-size="pageSize"
+          :current-page="currentPage" @current-change="handlePageChange" />
       </div>
     </el-card>
     <el-dialog v-model="showCreateDialog" title="新建活动" width="500px">
@@ -60,7 +56,7 @@
         <el-form-item label="活动名称">
           <el-input v-model="createForm.title" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="简介" >
+        <el-form-item label="简介">
           <el-input v-model="createForm.content" autocomplete="off" />
         </el-form-item>
         <el-form-item label="地点">
@@ -68,33 +64,16 @@
         </el-form-item>
         <el-form-item label="所属社团">
           <el-select v-model="createForm.clubId" placeholder="请选择所属社团" style="width: 100%">
-            <el-option
-              v-for="club in clubs"
-              :key="club.id"
-              :label="club.name"
-              :value="club.id"
-            />
+            <el-option v-for="club in clubs" :key="club.id" :label="club.name" :value="club.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="开始时间">
-          <el-date-picker
-            v-model="createForm.startTime"
-            type="datetime"
-            placeholder="选择开始时间"
-            style="width: 100%"
-            format="YYYY-MM-DDTHH:mm:ss"
-            value-format="YYYY-MM-DDTHH:mm:ss"
-          />
+          <el-date-picker v-model="createForm.startTime" type="datetime" placeholder="选择开始时间" style="width: 100%"
+            format="YYYY-MM-DDTHH:mm:ss" value-format="YYYY-MM-DDTHH:mm:ss" />
         </el-form-item>
         <el-form-item label="结束时间">
-          <el-date-picker
-            v-model="createForm.endTime"
-            type="datetime"
-            placeholder="选择结束时间"
-            style="width: 100%"
-            format="YYYY-MM-DDTHH:mm:ss"
-            value-format="YYYY-MM-DDTHH:mm:ss"
-          />
+          <el-date-picker v-model="createForm.endTime" type="datetime" placeholder="选择结束时间" style="width: 100%"
+            format="YYYY-MM-DDTHH:mm:ss" value-format="YYYY-MM-DDTHH:mm:ss" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -115,33 +94,16 @@
         </el-form-item>
         <el-form-item label="所属社团">
           <el-select v-model="editForm.clubId" placeholder="请选择所属社团" style="width: 100%">
-            <el-option
-              v-for="club in clubs"
-              :key="club.id"
-              :label="club.name"
-              :value="club.id"
-            />
+            <el-option v-for="club in clubs" :key="club.id" :label="club.name" :value="club.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="开始时间">
-          <el-date-picker
-            v-model="editForm.startTime"
-            type="datetime"
-            placeholder="选择开始时间"
-            style="width: 100%"
-            format="YYYY-MM-DDTHH:mm:ss"
-            value-format="YYYY-MM-DDTHH:mm:ss"
-          />
+          <el-date-picker v-model="editForm.startTime" type="datetime" placeholder="选择开始时间" style="width: 100%"
+            format="YYYY-MM-DDTHH:mm:ss" value-format="YYYY-MM-DDTHH:mm:ss" />
         </el-form-item>
         <el-form-item label="结束时间">
-          <el-date-picker
-            v-model="editForm.endTime"
-            type="datetime"
-            placeholder="选择结束时间"
-            style="width: 100%"
-            format="YYYY-MM-DDTHH:mm:ss"
-            value-format="YYYY-MM-DDTHH:mm:ss"
-          />
+          <el-date-picker v-model="editForm.endTime" type="datetime" placeholder="选择结束时间" style="width: 100%"
+            format="YYYY-MM-DDTHH:mm:ss" value-format="YYYY-MM-DDTHH:mm:ss" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -172,11 +134,10 @@ const currentPage = ref(1)
 const loading = ref(false)
 const searchTitle = ref('')
 const userStore = useUserStore()
-console.log('userStore.role', userStore.role)
 const showCreateDialog = ref(false)
 const showEditDialog = ref(false)
 const showDeleteDialog = ref(false)
-const deleteActivityId = ref<number|null>(null)
+const deleteActivityId = ref<number | null>(null)
 const deleteActivityTitle = ref('')
 const deleteLoading = ref(false)
 const enrolledActivityIds = ref<Set<number>>(new Set())
@@ -252,7 +213,6 @@ function openCreateDialog() {
 async function handleCreateActivity() {
   createLoading.value = true
   try {
-    console.log("用户id"+userStore.userId)
     await http.post('/activities', {
       ...createForm.value,
       createdBy: userStore.userId
@@ -337,7 +297,7 @@ async function handleEnroll(row: any) {
       activityId: row.id
     })
     // 报名成功后发送消息
-    await sendMessageToUser(userStore.userId, row.title)
+    await sendMessageToUser(Number(userStore.userId), row.title)
     ElMessage.success('报名成功，已发送通知！')
     // 报名成功后，更新已报名活动id列表
     enrolledActivityIds.value.add(row.id)
@@ -350,7 +310,6 @@ async function exportActivities() {
   try {
     const res = await http.get('/activities/export', { responseType: 'blob' })
     const blob = res.data; // 直接用 data
-    console.log('准备下载', blob);
 
     if (blob.type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
       const text = await blob.text();
@@ -367,7 +326,6 @@ async function exportActivities() {
     link.click()
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
-    console.log('已触发下载')
   } catch (e) {
     if (e instanceof Blob) {
       const text = await e.text();
@@ -392,12 +350,16 @@ onMounted(() => {
   margin: 40px auto;
   font-size: 18px;
 }
+
 .el-card {
   font-size: 18px;
 }
-.el-table th, .el-table td {
+
+.el-table th,
+.el-table td {
   font-size: 18px;
 }
+
 .table-pagination-wrapper {
   width: 100%;
   display: flex;
@@ -406,6 +368,7 @@ onMounted(() => {
   margin-top: 16px;
   margin-bottom: 0;
 }
+
 /* 操作按钮水平排列 */
 .action-btns-horizontal {
   display: flex;

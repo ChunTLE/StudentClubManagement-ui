@@ -238,7 +238,6 @@ async function handleCreate() {
       ...createForm.value,
       recordedBy: userStore.userId
     }
-    console.log('新增记录 payload:', payload)
     await http.post('/finance-records', payload)
     showCreateDialog.value = false
     fetchRecords()
@@ -259,7 +258,6 @@ async function handleEdit() {
       ...editForm.value,
       recordedBy: userStore.userId
     }
-    console.log('编辑记录 payload:', payload)
     await http.put(`/finance-records/${editForm.value.id}`, payload)
     showEditDialog.value = false
     fetchRecords()
